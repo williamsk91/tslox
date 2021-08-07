@@ -98,6 +98,8 @@ export class Scanner {
         if (this.match("/")) {
           // A comment goes until the end of the line.
           while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
+        } else if (this.match("*")) {
+          this.blockCommentScanner();
         } else {
           this.addToken(TokenType.SLASH);
         }
@@ -127,6 +129,19 @@ export class Scanner {
         }
     }
   }
+
+  private blockCommentScanner = () => {
+    while (!this.isAtEnd()) {
+      if (this.peek() === "*" && this.peekNext() === "/") {
+        this.advance();
+        this.advance();
+        return;
+      } else {
+        this.advance();
+      }
+    }
+    Lox.error(this.line, "Unterminated block comment.");
+  };
 
   private identifier = () => {
     while (this.isAlphaNumeric(this.peek())) this.advance();
