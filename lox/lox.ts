@@ -1,4 +1,5 @@
 import { readFileSync } from "fs";
+import { createInterface } from "readline";
 
 import { Scanner } from "./scanner";
 
@@ -25,9 +26,24 @@ export class Lox {
   }
 
   /**
-   * @todo REPL
+   * REPL
    */
-  private static runPrompt() {}
+  private static runPrompt() {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      prompt: "[lox]: ",
+    });
+
+    rl.prompt();
+    rl.on("line", (line) => {
+      const cmd = line.trim();
+      this.run(cmd);
+      rl.prompt();
+    }).on("close", () => {
+      console.log("Bye!");
+    });
+  }
 
   private static run(source: string) {
     const scanner = new Scanner(source);
