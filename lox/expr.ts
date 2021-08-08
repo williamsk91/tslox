@@ -1,37 +1,52 @@
 import { Token } from "./token";
 
-export class Expr {
-  static Binary = class {
-    constructor(left: Expr, operator: Token, right: Expr) {
-      this.left = left;
-      this.operator = operator;
-      this.right = right;
-    }
-    readonly left: Expr;
-    readonly operator: Token;
-    readonly right: Expr;
-  };
+interface Visitor<T> {
+  visitBinaryExpr(expr: Binary): T;
+  visitGroupingExpr(expr: Grouping): T;
+  visitLiteralExpr(expr: Literal): T;
+  visitUnaryExpr(expr: Unary): T;
+}
+export abstract class Expr {
+  abstract accept<T>(visitor: Visitor<T>): T;
+}
+export class Binary implements Expr {
+  constructor(left: Expr, operator: Token, right: Expr) {
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitBinaryExpr(this);
 
-  static Grouping = class {
-    constructor(expression: Expr) {
-      this.expression = expression;
-    }
-    readonly expression: Expr;
-  };
+  readonly left: Expr;
+  readonly operator: Token;
+  readonly right: Expr;
+}
 
-  static Literal = class {
-    constructor(value: Object) {
-      this.value = value;
-    }
-    readonly value: Object;
-  };
+export class Grouping implements Expr {
+  constructor(expression: Expr) {
+    this.expression = expression;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitGroupingExpr(this);
 
-  static Unary = class {
-    constructor(operator: Token, right: Expr) {
-      this.operator = operator;
-      this.right = right;
-    }
-    readonly operator: Token;
-    readonly right: Expr;
-  };
+  readonly expression: Expr;
+}
+
+export class Literal implements Expr {
+  constructor(value: Object) {
+    this.value = value;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitLiteralExpr(this);
+
+  readonly value: Object;
+}
+
+export class Unary implements Expr {
+  constructor(operator: Token, right: Expr) {
+    this.operator = operator;
+    this.right = right;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitUnaryExpr(this);
+
+  readonly operator: Token;
+  readonly right: Expr;
 }

@@ -31,29 +31,60 @@ class GenerateAst {
     // Imports
     writer.write('import { Token } from "./token";\n\n');
 
-    writer.write("export class " + baseName + " {\n");
+    this.defineVisitorInterface(writer, baseName, types);
+
+    writer.write("export abstract class " + baseName + " {\n");
+
+    this.defineVisitor(writer, baseName, types);
+
+    writer.write("}\n");
 
     for (const type of types) {
       const [className, fields] = type.split(":").map((t) => t.trim());
       this.defineType(writer, baseName, className, fields);
     }
 
-    writer.write("}");
     writer.close();
+  };
+
+  private static defineVisitor = (
+    writer: WriteStream,
+    _baseName: string,
+    _types: string[]
+  ) => {
+    writer.write("  abstract accept<T>(visitor: Visitor<T>): T;\n");
+  };
+
+  private static defineVisitorInterface = (
+    writer: WriteStream,
+    baseName: string,
+    types: string[]
+  ) => {
+    writer.write("interface Visitor<T> {\n");
+    types
+      .map((t) => t.split(":")[0].trim())
+      .forEach((name) => {
+        const fnName = "visit" + name + baseName;
+        writer.write(`  ${fnName}(${baseName.toLowerCase()}: ${name}): T;\n`);
+      });
+
+    writer.write("}\n");
   };
 
   private static defineType = (
     writer: WriteStream,
-    _baseName: string,
+    baseName: string,
     className: string,
     fieldList: string
   ) => {
     const fields = fieldList.split(", ").map((f) => f.split(" "));
 
-    writer.write("  static " + className + " = class {\n");
+    writer.write(
+      "export class " + className + " implements " + baseName + " {\n"
+    );
 
     // Constructor.
-    writer.write("    constructor(");
+    writer.write("  constructor(");
 
     const params = fields.map(([type, name]) => name + ": " + type).join(", ");
     writer.write(params);
@@ -61,16 +92,22 @@ class GenerateAst {
 
     // assignments
     fields
-      .map(([_, name]) => `      this.${name} = ${name};\n`)
+      .map(([_, name]) => `    this.${name} = ${name};\n`)
       .forEach((a) => writer.write(a));
-    writer.write("    }\n");
+    writer.write("  }\n");
+
+    // Visitor pattern
+    const fnName = "visit" + className + baseName;
+    writer.write(
+      `  accept = <T>(visitor: Visitor<T>) => visitor.${fnName}(this);\n\n`
+    );
 
     // Fields.
     fields
-      .map(([type, name]) => `    readonly ${name}: ${type};\n`)
+      .map(([type, name]) => `  readonly ${name}: ${type};\n`)
       .forEach((a) => writer.write(a));
 
-    writer.write("  };\n\n");
+    writer.write("}\n\n");
   };
 }
 
