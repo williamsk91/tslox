@@ -60,7 +60,7 @@ class GenerateAst {
     baseName: string,
     types: string[]
   ) => {
-    writer.write("interface Visitor<T> {\n");
+    writer.write("export interface Visitor<T> {\n");
     types
       .map((t) => t.split(":")[0].trim())
       .forEach((name) => {

@@ -1,6 +1,6 @@
 import { Token } from "./token";
 
-interface Visitor<T> {
+export interface Visitor<T> {
   visitBinaryExpr(expr: Binary): T;
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
