@@ -1,7 +1,11 @@
 import { readFileSync } from "fs";
 import { createInterface } from "readline";
 
+import { AstPrinter } from "./astPrinter";
+import { Parser } from "./parser";
 import { Scanner } from "./scanner";
+import { Token } from "./token";
+import { TokenType } from "./tokenType";
 
 export class Lox {
   static hadError = false;
@@ -49,10 +53,14 @@ export class Lox {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
 
-    // For now, just print the tokens.
-    for (const t of tokens) {
-      console.log("token: ", t);
-    }
+    const parser = new Parser(tokens);
+    const expression = parser.parse();
+
+    // Stop if there was a syntax error.
+    if (this.hadError) return;
+    expression
+      ? console.log(new AstPrinter().print(expression))
+      : console.log("Error found in the parser");
   }
 
   static error(line: number, message: string) {
@@ -62,6 +70,14 @@ export class Lox {
   private static report(line: number, where: string, message: string) {
     console.log("[line " + line + "] Error" + where + ": " + message);
     this.hadError = true;
+  }
+
+  static tokenError(token: Token, message: string): void {
+    if (token.type === TokenType.EOF) {
+      this.report(token.line, " at end", message);
+    } else {
+      this.report(token.line, " at '" + token.lexeme + "'", message);
+    }
   }
 }
 

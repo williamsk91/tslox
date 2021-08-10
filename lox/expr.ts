@@ -32,12 +32,12 @@ export class Grouping implements Expr {
 }
 
 export class Literal implements Expr {
-  constructor(value: Object) {
+  constructor(value: any) {
     this.value = value;
   }
   accept = <T>(visitor: Visitor<T>) => visitor.visitLiteralExpr(this);
 
-  readonly value: Object;
+  readonly value: any;
 }
 
 export class Unary implements Expr {

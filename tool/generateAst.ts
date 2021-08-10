@@ -10,7 +10,7 @@ class GenerateAst {
     this.defineAst(outputDir, "Expr", [
       "Binary   : Expr left, Token operator, Expr right",
       "Grouping : Expr expression",
-      "Literal  : Object value",
+      "Literal  : any value",
       "Unary    : Token operator, Expr right",
     ]);
   }
