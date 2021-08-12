@@ -81,4 +81,11 @@ export class Lox {
   }
 }
 
-Lox.main(process.argv.slice(2));
+/**
+ * Only run if called directly from cli
+ *
+ * @link https://nodejs.org/api/modules.html#modules_accessing_the_main_module
+ */
+if (require.main === module) {
+  Lox.main(process.argv.slice(2));
+}
