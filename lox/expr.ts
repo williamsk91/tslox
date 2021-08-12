@@ -1,6 +1,7 @@
 import { Token } from "./token";
 
 export interface Visitor<T> {
+  visitTernaryExpr(expr: Ternary): T;
   visitBinaryExpr(expr: Binary): T;
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
@@ -9,6 +10,19 @@ export interface Visitor<T> {
 export abstract class Expr {
   abstract accept<T>(visitor: Visitor<T>): T;
 }
+export class Ternary implements Expr {
+  constructor(cond: Expr, truthy: Expr, falsy: Expr) {
+    this.cond = cond;
+    this.truthy = truthy;
+    this.falsy = falsy;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitTernaryExpr(this);
+
+  readonly cond: Expr;
+  readonly truthy: Expr;
+  readonly falsy: Expr;
+}
+
 export class Binary implements Expr {
   constructor(left: Expr, operator: Token, right: Expr) {
     this.left = left;

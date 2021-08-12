@@ -8,6 +8,8 @@ export enum TokenType {
   DOT,
   MINUS,
   PLUS,
+  QUESTION_MARK,
+  COLON,
   SEMICOLON,
   SLASH,
   STAR,

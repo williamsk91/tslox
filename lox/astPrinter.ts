@@ -1,4 +1,12 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./expr";
+import {
+  Binary,
+  Expr,
+  Grouping,
+  Literal,
+  Ternary,
+  Unary,
+  Visitor,
+} from "./expr";
 
 /**
  * Prints AST in LISP like structure with explicit parentheses
@@ -6,6 +14,10 @@ import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./expr";
 export class AstPrinter implements Visitor<string> {
   print(expr: Expr) {
     return expr.accept(this);
+  }
+
+  public visitTernaryExpr(expr: Ternary) {
+    return this.parenthesize("?:", expr.cond, expr.truthy, expr.falsy);
   }
 
   public visitBinaryExpr(expr: Binary) {

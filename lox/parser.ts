@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary } from "./expr";
+import { Binary, Expr, Grouping, Literal, Ternary, Unary } from "./expr";
 import { Lox } from "./lox";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
@@ -6,7 +6,9 @@ import { TokenType } from "./tokenType";
 /**
  * Grammar:
  *
- *     expression     → equality ;
+ *     expression     → equality
+ *                      | ternary ;
+ *     ternary        → comparison "?" comparison ":" comparison ;
  *     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  *     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -24,7 +26,7 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  parse() {
+  parse(): Expr | null {
     try {
       return this.expression();
     } catch (error) {
@@ -33,7 +35,22 @@ export class Parser {
   }
 
   private expression(): Expr {
+    if (this.checkAhead(TokenType.QUESTION_MARK)) {
+      return this.ternary();
+    }
     return this.equality();
+  }
+
+  private ternary(): Expr {
+    let cond = this.comparison();
+
+    this.consume(TokenType.QUESTION_MARK, "Expect '?' after condition.");
+    const truthy = this.comparison();
+
+    this.consume(TokenType.COLON, "Expect ':' after first expression.");
+    const falsy = this.comparison();
+
+    return new Ternary(cond, truthy, falsy);
   }
 
   private equality(): Expr {
@@ -139,6 +156,16 @@ export class Parser {
   private check(type: TokenType): boolean {
     if (this.isAtEnd()) return false;
     return this.peek().type == type;
+  }
+
+  private checkAhead(type: TokenType): boolean {
+    if (this.isAtEnd()) return false;
+
+    for (let i = this.current + 1; i < this.tokens.length; i++) {
+      const token = this.tokens[i];
+      if (token.type === type) return true;
+    }
+    return false;
   }
 
   private advance(): Token {

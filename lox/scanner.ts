@@ -72,6 +72,12 @@ export class Scanner {
       case "+":
         this.addToken(TokenType.PLUS);
         break;
+      case "?":
+        this.addToken(TokenType.QUESTION_MARK);
+        break;
+      case ":":
+        this.addToken(TokenType.COLON);
+        break;
       case ";":
         this.addToken(TokenType.SEMICOLON);
         break;
@@ -125,7 +131,7 @@ export class Scanner {
         } else if (this.isAlpha(c)) {
           this.identifier();
         } else {
-          Lox.error(this.line, "Unexpected character.");
+          Lox.error(this.line, `Unexpected character: [${c}]`);
         }
     }
   }

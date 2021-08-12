@@ -8,6 +8,7 @@ class GenerateAst {
     }
     const outputDir: string = args[0];
     this.defineAst(outputDir, "Expr", [
+      "Ternary  : Expr cond, Expr truthy, Expr falsy",
       "Binary   : Expr left, Token operator, Expr right",
       "Grouping : Expr expression",
       "Literal  : any value",
