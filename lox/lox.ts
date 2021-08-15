@@ -1,14 +1,18 @@
 import { readFileSync } from "fs";
 import { createInterface } from "readline";
 
-import { AstPrinter } from "./astPrinter";
+import { Interpreter } from "./interpreter";
 import { Parser } from "./parser";
+import { RuntimeError } from "./runtimeError";
 import { Scanner } from "./scanner";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
 export class Lox {
+  private static readonly interpreter = new Interpreter();
+
   static hadError = false;
+  static hadRuntimeError = false;
 
   public static main(args: string[]) {
     if (args.length > 1) {
@@ -27,6 +31,7 @@ export class Lox {
 
     // Indicate an error in the exit code.
     if (this.hadError) process.exit(65);
+    if (this.hadRuntimeError) process.exit(70);
   }
 
   /**
@@ -58,13 +63,21 @@ export class Lox {
 
     // Stop if there was a syntax error.
     if (this.hadError) return;
-    expression
-      ? console.log(new AstPrinter().print(expression))
-      : console.log("Error found in the parser");
+    if (expression === null) {
+      console.log("Error parsing expression");
+      return;
+    }
+
+    this.interpreter.interpret(expression);
   }
 
   static error(line: number, message: string) {
     this.report(line, "", message);
+  }
+
+  static runtimeError(error: RuntimeError) {
+    console.log("[line " + error.token.line + "] " + error.message);
+    Lox.hadRuntimeError = true;
   }
 
   private static report(line: number, where: string, message: string) {
