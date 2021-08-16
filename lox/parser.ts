@@ -1,7 +1,10 @@
 import { Binary, Expr, Grouping, Literal, Ternary, Unary } from "./expr";
 import { Lox } from "./lox";
+import { Expression, Print, Stmt } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
+
+class ParseError extends Error {}
 
 /**
  * Grammar:
@@ -26,13 +29,36 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  parse(): Expr | null {
-    try {
-      return this.expression();
-    } catch (error) {
-      return null;
+  parse(): Stmt[] {
+    let statements: Stmt[] = [];
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+
+    return statements;
   }
+
+  // ------------------------- Statement -------------------------
+
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+
+    return this.expressionStatement();
+  }
+
+  private printStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Print(value);
+  }
+
+  private expressionStatement(): Stmt {
+    const expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    return new Expression(expr);
+  }
+
+  // ------------------------- Expression -------------------------
 
   private expression(): Expr {
     if (this.checkAhead(TokenType.QUESTION_MARK)) {
@@ -136,6 +162,8 @@ export class Parser {
     throw this.error(this.peek(), "Expect expression.");
   }
 
+  // ------------------------- Helper -------------------------
+
   private consume(type: TokenType, message: string): Token {
     if (this.check(type)) return this.advance();
 
@@ -204,5 +232,3 @@ export class Parser {
     }
   }
 }
-
-class ParseError extends Error {}

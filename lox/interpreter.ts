@@ -1,31 +1,50 @@
 import {
   Binary,
   Expr,
+  Visitor as ExprVisitor,
   Grouping,
   Literal,
   Ternary,
   Unary,
-  Visitor,
 } from "./expr";
 import { Lox } from "./lox";
 import { RuntimeError } from "./runtimeError";
+import { Expression, Print, Stmt, Visitor as StmtVisitor } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
-export class Interpreter implements Visitor<Object> {
-  interpret(expression: Expr): Object | void {
+export class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
+  interpret(statements: Stmt[]): Object | void {
     try {
-      const value = this.evaluate(expression);
-      console.log(this.stringify(value));
-      return value;
+      for (const s of statements) {
+        this.execute(s);
+      }
     } catch (error) {
       Lox.runtimeError(error);
     }
   }
 
+  private execute(stmt: Stmt) {
+    stmt.accept(this);
+  }
+
   private evaluate(expr: Expr): Object {
     return expr.accept(this);
   }
+
+  // ------------------------- Statement -------------------------
+
+  public visitExpressionStmt(stmt: Expression) {
+    this.evaluate(stmt.expression);
+  }
+
+  public visitPrintStmt(stmt: Print) {
+    const value = this.evaluate(stmt.expression);
+    console.log(this.stringify(value));
+    return null;
+  }
+
+  // ------------------------- Expression -------------------------
 
   public visitTernaryExpr(expr: Ternary) {
     const value = this.evaluate(expr.cond);
@@ -115,6 +134,8 @@ export class Interpreter implements Visitor<Object> {
       "Unknown token type used as unary operator"
     );
   }
+
+  // ------------------------- Helper -------------------------
 
   private checkNumberOperand(operator: Token, operand: Object) {
     if (typeof operand === "number") return;

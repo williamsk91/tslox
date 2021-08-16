@@ -13,12 +13,10 @@ const interpreter = (source: string): Object | undefined => {
   const tokens = scanner.scanTokens();
 
   const parser = new Parser(tokens);
-  const expression = parser.parse();
-
-  if (expression === null) return undefined;
+  const statements = parser.parse();
 
   const interpreter = new Interpreter();
-  const value = interpreter.interpret(expression) as Object;
+  const value = interpreter.interpret(statements) as Object;
   return value;
 };
 
