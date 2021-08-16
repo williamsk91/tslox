@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "repl": "ts-node lox/lox",
-    "test": "yarn jest --watch"
+    "test": "yarn jest --watch",
+    "gen-ast": "ts-node tool/generateAst.ts lox/"
   },
   "dependencies": {
     "ts-node": "^10.1.0"

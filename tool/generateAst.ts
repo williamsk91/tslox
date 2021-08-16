@@ -7,13 +7,25 @@ class GenerateAst {
       process.exit(64);
     }
     const outputDir: string = args[0];
-    this.defineAst(outputDir, "Expr", [
-      "Ternary  : Expr cond, Expr truthy, Expr falsy",
-      "Binary   : Expr left, Token operator, Expr right",
-      "Grouping : Expr expression",
-      "Literal  : any value",
-      "Unary    : Token operator, Expr right",
-    ]);
+    this.defineAst(
+      outputDir,
+      "Expr",
+      [
+        "Ternary  : Expr cond, Expr truthy, Expr falsy",
+        "Binary   : Expr left, Token operator, Expr right",
+        "Grouping : Expr expression",
+        "Literal  : any value",
+        "Unary    : Token operator, Expr right",
+      ],
+      ['import { Token } from "./token";\n\n']
+    );
+
+    this.defineAst(
+      outputDir,
+      "Stmt",
+      ["Expression : Expr expression", "Print      : Expr expression"],
+      ['import { Expr } from "./expr";\n\n']
+    );
   }
 
   /**
@@ -22,15 +34,15 @@ class GenerateAst {
   private static defineAst = (
     outputDir: string,
     baseName: string,
-    types: string[]
+    types: string[],
+    extras: string[] = []
   ) => {
     const path = outputDir + "/" + baseName + ".ts";
 
     writeFileSync(path, "");
     const writer = createWriteStream(path);
 
-    // Imports
-    writer.write('import { Token } from "./token";\n\n');
+    extras.forEach((e) => writer.write(e));
 
     this.defineVisitorInterface(writer, baseName, types);
 
