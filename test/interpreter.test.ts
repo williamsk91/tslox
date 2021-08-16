@@ -64,7 +64,7 @@ describe("interpreter", () => {
     test("+", () => {
       expect(interpreter("10 + 10")).toBe(20);
       expect(interpreter('"10" + "10"')).toBe("1010");
-      expect(interpreter('"10" + 10')).toBeUndefined();
+      expect(interpreter('"12" + 34')).toBe("1234");
     });
 
     test("-", () => {
