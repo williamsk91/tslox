@@ -8,6 +8,15 @@ export class Environment {
     this.values.set(name, value);
   }
 
+  assign(name: Token, value: Object) {
+    if (this.values.has(name.lexeme)) {
+      this.values.set(name.lexeme, value);
+      return;
+    }
+
+    throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+  }
+
   get(name: Token): Object | null {
     if (this.values.has(name.lexeme)) {
       return this.values.get(name.lexeme) ?? null;

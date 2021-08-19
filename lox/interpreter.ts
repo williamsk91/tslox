@@ -1,5 +1,6 @@
 import { Environment } from "./environment";
 import {
+  Assign,
   Binary,
   Expr,
   Visitor as ExprVisitor,
@@ -56,6 +57,12 @@ export class Interpreter
     }
 
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  public visitAssignExpr(expr: Assign) {
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   // ------------------------- Expression -------------------------

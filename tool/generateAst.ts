@@ -12,6 +12,7 @@ class GenerateAst {
       "Expr",
       [
         "Ternary  : Expr cond, Expr truthy, Expr falsy",
+        "Assign   : Token name, Expr value",
         "Binary   : Expr left, Token operator, Expr right",
         "Grouping : Expr expression",
         "Literal  : any value",

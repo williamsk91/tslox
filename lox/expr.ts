@@ -2,6 +2,7 @@ import { Token } from "./token";
 
 export interface Visitor<T> {
   visitTernaryExpr(expr: Ternary): T;
+  visitAssignExpr(expr: Assign): T;
   visitBinaryExpr(expr: Binary): T;
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
@@ -22,6 +23,17 @@ export class Ternary implements Expr {
   readonly cond: Expr;
   readonly truthy: Expr;
   readonly falsy: Expr;
+}
+
+export class Assign implements Expr {
+  constructor(name: Token, value: Expr) {
+    this.name = name;
+    this.value = value;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitAssignExpr(this);
+
+  readonly name: Token;
+  readonly value: Expr;
 }
 
 export class Binary implements Expr {

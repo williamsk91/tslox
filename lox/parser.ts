@@ -1,4 +1,5 @@
 import {
+  Assign,
   Binary,
   Expr,
   Grouping,
@@ -23,12 +24,14 @@ class ParseError extends Error {}
  *                      | statement ;
  *     statement      → exprStmt
  *                      | printStmt ;
- *     exprStmt       → expression ";" ;
- *     printStmt      → "print" expression ";" ;
- *     varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+ *     exprStmt       → expression ;
+ *     printStmt      → "print" expression ;
+ *     varDecl        → "var" IDENTIFIER ( "=" expression )? ;
  *
- *     expression     → equality
+ *     expression     → assignment
  *                      | ternary ;
+ *     assignment     -> IDENTIFIER "=" assignment
+ *                      | equality ;
  *     ternary        → comparison "?" comparison ":" comparison ;
  *     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -108,7 +111,25 @@ export class Parser {
     if (this.checkAhead(TokenType.QUESTION_MARK)) {
       return this.ternary();
     }
-    return this.equality();
+    return this.assignment();
+  }
+
+  private assignment(): Expr {
+    const expr = this.equality();
+
+    if (this.match(TokenType.EQUAL)) {
+      const equals = this.previous();
+      const value = this.assignment();
+
+      if (expr instanceof Variable) {
+        const name = expr.name;
+        return new Assign(name, value);
+      }
+
+      this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
   }
 
   private ternary(): Expr {

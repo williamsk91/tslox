@@ -28,12 +28,13 @@ export class Print implements Stmt {
 }
 
 export class Var implements Stmt {
-  constructor(name: Token, initializer: Expr | null) {
+  constructor(name: Token, initializer: Expr|null) {
     this.name = name;
     this.initializer = initializer;
   }
   accept = <T>(visitor: Visitor<T>) => visitor.visitVarStmt(this);
 
   readonly name: Token;
-  readonly initializer: Expr | null;
+  readonly initializer: Expr|null;
 }
+
