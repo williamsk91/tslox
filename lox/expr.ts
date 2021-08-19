@@ -6,6 +6,7 @@ export interface Visitor<T> {
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
   visitUnaryExpr(expr: Unary): T;
+  visitVariableExpr(expr: Variable): T;
 }
 export abstract class Expr {
   abstract accept<T>(visitor: Visitor<T>): T;
@@ -64,3 +65,13 @@ export class Unary implements Expr {
   readonly operator: Token;
   readonly right: Expr;
 }
+
+export class Variable implements Expr {
+  constructor(name: Token) {
+    this.name = name;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitVariableExpr(this);
+
+  readonly name: Token;
+}
+

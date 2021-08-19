@@ -1,3 +1,4 @@
+import { Environment } from "./environment";
 import {
   Binary,
   Expr,
@@ -6,14 +7,19 @@ import {
   Literal,
   Ternary,
   Unary,
+  Variable,
 } from "./expr";
 import { Lox } from "./lox";
 import { RuntimeError } from "./runtimeError";
-import { Expression, Print, Stmt, Visitor as StmtVisitor } from "./Stmt";
+import { Expression, Print, Stmt, Visitor as StmtVisitor, Var } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
-export class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
+export class Interpreter
+  implements ExprVisitor<Object | null>, StmtVisitor<void>
+{
+  private environment = new Environment();
+
   interpret(statements: Stmt[]): Object | void {
     try {
       for (const s of statements) {
@@ -41,7 +47,15 @@ export class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
   public visitPrintStmt(stmt: Print) {
     const value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
-    return null;
+  }
+
+  public visitVarStmt(stmt: Var) {
+    let value = null;
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+
+    this.environment.define(stmt.name.lexeme, value);
   }
 
   // ------------------------- Expression -------------------------
@@ -133,6 +147,10 @@ export class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
       expr.operator,
       "Unknown token type used as unary operator"
     );
+  }
+
+  public visitVariableExpr(expr: Variable) {
+    return this.environment.get(expr.name);
   }
 
   // ------------------------- Helper -------------------------

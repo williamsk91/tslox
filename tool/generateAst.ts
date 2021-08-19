@@ -16,6 +16,7 @@ class GenerateAst {
         "Grouping : Expr expression",
         "Literal  : any value",
         "Unary    : Token operator, Expr right",
+        "Variable : Token name",
       ],
       ['import { Token } from "./token";\n\n']
     );
@@ -23,8 +24,15 @@ class GenerateAst {
     this.defineAst(
       outputDir,
       "Stmt",
-      ["Expression : Expr expression", "Print      : Expr expression"],
-      ['import { Expr } from "./expr";\n\n']
+      [
+        "Expression : Expr expression",
+        "Print      : Expr expression",
+        "Var        : Token name, Expr|null initializer",
+      ],
+      [
+        'import { Expr } from "./expr";\n',
+        'import { Token } from "./token";\n\n',
+      ]
     );
   }
 
