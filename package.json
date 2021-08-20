@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "repl": "ts-node lox/lox",
+    "lox": "ts-node lox/lox",
     "test": "yarn jest --watch",
     "gen-ast": "ts-node tool/generateAst.ts lox/"
   },

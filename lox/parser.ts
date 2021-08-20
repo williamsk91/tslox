@@ -9,7 +9,7 @@ import {
   Variable,
 } from "./expr";
 import { Lox } from "./lox";
-import { Expression, Print, Stmt, Var } from "./Stmt";
+import { Block, Expression, Print, Stmt, Var } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -23,10 +23,13 @@ class ParseError extends Error {}
  *     declaration    → varDecl
  *                      | statement ;
  *     statement      → exprStmt
- *                      | printStmt ;
+ *                      | printStmt
+ *                      | block ;
+ *
+ *     varDecl        → "var" IDENTIFIER ( "=" expression )? ;
  *     exprStmt       → expression ;
  *     printStmt      → "print" expression ;
- *     varDecl        → "var" IDENTIFIER ( "=" expression )? ;
+ *     block          → "{" declaration* "}" ;
  *
  *     expression     → assignment
  *                      | ternary ;
@@ -77,14 +80,9 @@ export class Parser {
 
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
-  }
-
-  private printStatement(): Stmt {
-    const value = this.expression();
-    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
-    return new Print(value);
   }
 
   private varDeclaration(): Stmt {
@@ -97,6 +95,25 @@ export class Parser {
 
     this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
     return new Var(name, initializer);
+  }
+
+  private printStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Print(value);
+  }
+
+  private block(): Stmt[] {
+    let statements: Stmt[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      const dec = this.declaration();
+      if (dec !== null) {
+        statements.push(dec);
+      }
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
   }
 
   private expressionStatement(): Stmt {

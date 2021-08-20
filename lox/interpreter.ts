@@ -12,7 +12,14 @@ import {
 } from "./expr";
 import { Lox } from "./lox";
 import { RuntimeError } from "./runtimeError";
-import { Expression, Print, Stmt, Visitor as StmtVisitor, Var } from "./Stmt";
+import {
+  Block,
+  Expression,
+  Print,
+  Stmt,
+  Visitor as StmtVisitor,
+  Var,
+} from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -33,6 +40,17 @@ export class Interpreter
 
   private execute(stmt: Stmt) {
     stmt.accept(this);
+  }
+
+  private executeBlock(statements: Stmt[], environment: Environment) {
+    const previousEnvironment = this.environment;
+
+    try {
+      this.environment = environment;
+      for (const s of statements) this.execute(s);
+    } finally {
+      this.environment = previousEnvironment;
+    }
   }
 
   private evaluate(expr: Expr): Object {
@@ -59,13 +77,17 @@ export class Interpreter
     this.environment.define(stmt.name.lexeme, value);
   }
 
+  public visitBlockStmt(stmt: Block) {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  // ------------------------- Expression -------------------------
+
   public visitAssignExpr(expr: Assign) {
     const value = this.evaluate(expr.value);
     this.environment.assign(expr.name, value);
     return value;
   }
-
-  // ------------------------- Expression -------------------------
 
   public visitTernaryExpr(expr: Ternary) {
     const value = this.evaluate(expr.cond);

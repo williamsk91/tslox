@@ -2,6 +2,7 @@ import { Expr } from "./expr";
 import { Token } from "./token";
 
 export interface Visitor<T> {
+  visitBlockStmt(stmt: Block): T;
   visitExpressionStmt(stmt: Expression): T;
   visitPrintStmt(stmt: Print): T;
   visitVarStmt(stmt: Var): T;
@@ -9,6 +10,15 @@ export interface Visitor<T> {
 export abstract class Stmt {
   abstract accept<T>(visitor: Visitor<T>): T;
 }
+export class Block implements Stmt {
+  constructor(statements: Stmt[]) {
+    this.statements = statements;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitBlockStmt(this);
+
+  readonly statements: Stmt[];
+}
+
 export class Expression implements Stmt {
   constructor(expression: Expr) {
     this.expression = expression;
