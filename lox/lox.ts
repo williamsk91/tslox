@@ -46,6 +46,7 @@ export class Lox {
 
     rl.prompt();
     rl.on("line", (line) => {
+      this.hadError = false;
       const cmd = line.trim();
       this.run(cmd);
       rl.prompt();
