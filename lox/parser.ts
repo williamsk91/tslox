@@ -57,9 +57,10 @@ export class Parser {
   parse(): Stmt[] {
     let statements: Stmt[] = [];
     while (!this.isAtEnd()) {
-      const dec = this.declaration();
-      if (dec !== null) {
-        statements.push(dec);
+      try {
+        statements.push(this.declaration());
+      } catch {
+        this.synchronize();
       }
     }
 
@@ -68,14 +69,9 @@ export class Parser {
 
   // ------------------------- Statement -------------------------
 
-  private declaration(): Stmt | null {
-    try {
-      if (this.match(TokenType.VAR)) return this.varDeclaration();
-      return this.statement();
-    } catch (error) {
-      this.synchronize();
-      return null;
-    }
+  private declaration(): Stmt {
+    if (this.match(TokenType.VAR)) return this.varDeclaration();
+    return this.statement();
   }
 
   private statement(): Stmt {
@@ -106,10 +102,7 @@ export class Parser {
   private block(): Stmt[] {
     let statements: Stmt[] = [];
     while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
-      const dec = this.declaration();
-      if (dec !== null) {
-        statements.push(dec);
-      }
+      statements.push(this.declaration());
     }
 
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
