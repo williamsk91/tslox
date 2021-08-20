@@ -47,7 +47,22 @@ export class Lox {
     rl.prompt();
     rl.on("line", (line) => {
       this.hadError = false;
-      const cmd = line.trim();
+      let cmd = line.trim();
+
+      /**
+       * Allows REPL without explicit ";". Also prints evaluated expression.
+       *
+       * Assumes code without ";" at the end as valid expression.
+       * Will not work if line includes more than 1 expression as "print" is
+       * added to the front.
+       *
+       * e.g. `> 5 + 5; 4` will wrongly print `10`
+       *
+       */
+      if (!line.endsWith(";")) {
+        cmd = "print " + cmd + " ;";
+      }
+
       this.run(cmd);
       rl.prompt();
     }).on("close", () => {
