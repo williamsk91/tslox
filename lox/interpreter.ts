@@ -6,6 +6,7 @@ import {
   Visitor as ExprVisitor,
   Grouping,
   Literal,
+  Logical,
   Ternary,
   Unary,
   Variable,
@@ -167,6 +168,18 @@ export class Interpreter
 
   public visitLiteralExpr(expr: Literal) {
     return expr.value;
+  }
+
+  public visitLogicalExpr(expr: Logical) {
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type === TokenType.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   public visitUnaryExpr(expr: Unary) {

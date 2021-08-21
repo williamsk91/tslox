@@ -6,6 +6,7 @@ export interface Visitor<T> {
   visitBinaryExpr(expr: Binary): T;
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
+  visitLogicalExpr(expr: Logical): T;
   visitUnaryExpr(expr: Unary): T;
   visitVariableExpr(expr: Variable): T;
 }
@@ -65,6 +66,19 @@ export class Literal implements Expr {
   accept = <T>(visitor: Visitor<T>) => visitor.visitLiteralExpr(this);
 
   readonly value: any;
+}
+
+export class Logical implements Expr {
+  constructor(left: Expr, operator: Token, right: Expr) {
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitLogicalExpr(this);
+
+  readonly left: Expr;
+  readonly operator: Token;
+  readonly right: Expr;
 }
 
 export class Unary implements Expr {

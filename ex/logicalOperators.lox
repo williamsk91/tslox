@@ -1,0 +1,6 @@
+// or 
+print "hi" or 2; // "hi"
+print nil or "yes"; // "yes"
+
+// and
+print "1" and "2"; // "2"

@@ -4,6 +4,7 @@ import {
   Expr,
   Grouping,
   Literal,
+  Logical,
   Ternary,
   Unary,
   Variable,
@@ -36,8 +37,10 @@ class ParseError extends Error {}
  *
  *     expression     → assignment
  *                      | ternary ;
- *     assignment     -> IDENTIFIER "=" assignment
- *                      | equality ;
+ *     assignment     → IDENTIFIER "=" assignment
+ *                      | logic_or ;
+ *     logic_or       → logic_and ( "or" logic_and )* ;
+ *     logic_and      → equality ( "and" equality )* ;
  *     ternary        → comparison "?" comparison ":" comparison ;
  *     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -140,7 +143,7 @@ export class Parser {
   }
 
   private assignment(): Expr {
-    const expr = this.equality();
+    const expr = this.or();
 
     if (this.match(TokenType.EQUAL)) {
       const equals = this.previous();
@@ -152,6 +155,30 @@ export class Parser {
       }
 
       this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+  }
+
+  private or(): Expr {
+    let expr = this.and();
+
+    while (this.match(TokenType.OR)) {
+      const operator = this.previous();
+      const right = this.and();
+      expr = new Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private and(): Expr {
+    let expr = this.equality();
+
+    while (this.match(TokenType.AND)) {
+      const operator = this.previous();
+      const right = this.equality();
+      expr = new Logical(expr, operator, right);
     }
 
     return expr;
