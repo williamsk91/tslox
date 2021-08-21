@@ -28,6 +28,7 @@ class GenerateAst {
       [
         "Block      : Stmt[] statements",
         "Expression : Expr expression",
+        "If         : Expr cond, Stmt thenBranch, Stmt|null elseBranch",
         "Print      : Expr expression",
         "Var        : Token name, Expr|null initializer",
       ],

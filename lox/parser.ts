@@ -9,7 +9,7 @@ import {
   Variable,
 } from "./expr";
 import { Lox } from "./lox";
-import { Block, Expression, Print, Stmt, Var } from "./Stmt";
+import { Block, Expression, If, Print, Stmt, Var } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -23,11 +23,14 @@ class ParseError extends Error {}
  *     declaration    → varDecl
  *                      | statement ;
  *     statement      → exprStmt
+ *                      | ifStmt
  *                      | printStmt
  *                      | block ;
  *
  *     varDecl        → "var" IDENTIFIER ( "=" expression )? ;
  *     exprStmt       → expression ;
+ *     ifStmt         → "if" "(" expression ")" statement
+ *                      ( "else" statement )? ;
  *     printStmt      → "print" expression ;
  *     block          → "{" declaration* "}" ;
  *
@@ -75,6 +78,7 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
 
@@ -91,6 +95,17 @@ export class Parser {
 
     this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
     return new Var(name, initializer);
+  }
+
+  private ifStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+    const condition = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+    const thenBranch = this.statement();
+    const elseBranch = this.match(TokenType.ELSE) ? this.statement() : null;
+
+    return new If(condition, thenBranch, elseBranch);
   }
 
   private printStatement(): Stmt {

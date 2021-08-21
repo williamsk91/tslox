@@ -15,6 +15,7 @@ import { RuntimeError } from "./runtimeError";
 import {
   Block,
   Expression,
+  If,
   Print,
   Stmt,
   Visitor as StmtVisitor,
@@ -59,15 +60,6 @@ export class Interpreter
 
   // ------------------------- Statement -------------------------
 
-  public visitExpressionStmt(stmt: Expression) {
-    this.evaluate(stmt.expression);
-  }
-
-  public visitPrintStmt(stmt: Print) {
-    const value = this.evaluate(stmt.expression);
-    console.log(this.stringify(value));
-  }
-
   public visitVarStmt(stmt: Var) {
     let value = null;
     if (stmt.initializer !== null) {
@@ -75,6 +67,23 @@ export class Interpreter
     }
 
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  public visitExpressionStmt(stmt: Expression) {
+    this.evaluate(stmt.expression);
+  }
+
+  public visitIfStmt(stmt: If) {
+    if (this.isTruthy(this.evaluate(stmt.cond))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch !== null) {
+      this.execute(stmt.elseBranch);
+    }
+  }
+
+  public visitPrintStmt(stmt: Print) {
+    const value = this.evaluate(stmt.expression);
+    console.log(this.stringify(value));
   }
 
   public visitBlockStmt(stmt: Block) {
