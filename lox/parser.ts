@@ -10,7 +10,7 @@ import {
   Variable,
 } from "./expr";
 import { Lox } from "./lox";
-import { Block, Expression, If, Print, Stmt, Var } from "./Stmt";
+import { Block, Expression, If, Print, Stmt, Var, While } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -26,6 +26,7 @@ class ParseError extends Error {}
  *     statement      → exprStmt
  *                      | ifStmt
  *                      | printStmt
+ *                      | whileStmt
  *                      | block ;
  *
  *     varDecl        → "var" IDENTIFIER ( "=" expression )? ;
@@ -33,6 +34,7 @@ class ParseError extends Error {}
  *     ifStmt         → "if" "(" expression ")" statement
  *                      ( "else" statement )? ;
  *     printStmt      → "print" expression ;
+ *     whileStmt      → "while" "(" expression ")" statement ;
  *     block          → "{" declaration* "}" ;
  *
  *     expression     → assignment
@@ -83,6 +85,7 @@ export class Parser {
   private statement(): Stmt {
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
@@ -115,6 +118,15 @@ export class Parser {
     const value = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  private whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    const condition = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+    const body = this.statement();
+
+    return new While(condition, body);
   }
 
   private block(): Stmt[] {

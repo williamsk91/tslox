@@ -21,6 +21,7 @@ import {
   Stmt,
   Visitor as StmtVisitor,
   Var,
+  While,
 } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
@@ -85,6 +86,12 @@ export class Interpreter
   public visitPrintStmt(stmt: Print) {
     const value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  public visitWhileStmt(stmt: While) {
+    while (this.isTruthy(this.evaluate(stmt.cond))) {
+      this.execute(stmt.body);
+    }
   }
 
   public visitBlockStmt(stmt: Block) {

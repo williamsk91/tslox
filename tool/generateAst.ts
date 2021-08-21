@@ -32,6 +32,7 @@ class GenerateAst {
         "If         : Expr cond, Stmt thenBranch, Stmt|null elseBranch",
         "Print      : Expr expression",
         "Var        : Token name, Expr|null initializer",
+        "While      : Expr cond, Stmt body",
       ],
       [
         'import { Expr } from "./expr";\n',
