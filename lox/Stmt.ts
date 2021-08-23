@@ -4,6 +4,7 @@ import { Token } from "./token";
 export interface Visitor<T> {
   visitBlockStmt(stmt: Block): T;
   visitExpressionStmt(stmt: Expression): T;
+  visitFunStmt(stmt: Fun): T;
   visitIfStmt(stmt: If): T;
   visitPrintStmt(stmt: Print): T;
   visitVarStmt(stmt: Var): T;
@@ -28,6 +29,19 @@ export class Expression implements Stmt {
   accept = <T>(visitor: Visitor<T>) => visitor.visitExpressionStmt(this);
 
   readonly expression: Expr;
+}
+
+export class Fun implements Stmt {
+  constructor(name: Token, params: Token[], body: Stmt[]) {
+    this.name = name;
+    this.params = params;
+    this.body = body;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitFunStmt(this);
+
+  readonly name: Token;
+  readonly params: Token[];
+  readonly body: Stmt[];
 }
 
 export class If implements Stmt {

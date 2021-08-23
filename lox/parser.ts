@@ -1,6 +1,7 @@
 import {
   Assign,
   Binary,
+  Call,
   Expr,
   Grouping,
   Literal,
@@ -10,7 +11,7 @@ import {
   Variable,
 } from "./expr";
 import { Lox } from "./lox";
-import { Block, Expression, If, Print, Stmt, Var, While } from "./Stmt";
+import { Block, Expression, Fun, If, Print, Stmt, Var, While } from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -21,7 +22,8 @@ class ParseError extends Error {}
  *
  *     program        → declaration* EOF ;
  *
- *     declaration    → varDecl
+ *     declaration    → funDecl
+ *                      | varDecl
  *                      | statement ;
  *     statement      → exprStmt
  *                      | ifStmt
@@ -29,6 +31,10 @@ class ParseError extends Error {}
  *                      | whileStmt
  *                      | forStmt
  *                      | block ;
+ *
+ *     funDecl        → "fun" function ;
+ *     function       → IDENTIFIER "(" parameters? ")" block ;
+ *     parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
  *
  *     varDecl        → "var" IDENTIFIER ( "=" expression )? ;
  *     exprStmt       → expression ;
@@ -55,10 +61,12 @@ class ParseError extends Error {}
  *     term           → factor ( ( "-" | "+" ) factor )* ;
  *     factor         → unary ( ( "/" | "*" ) unary )* ;
  *     unary          → ( "!" | "-" ) unary
- *                      | primary ;
+ *                      | call ;
+ *     call           → primary ( "(" arguments? ")" )* ;
  *     primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                      | "(" expression ")"
  *                      | IDENTIFIER ;
+ *     arguments      → expression ( "," expression )* ;
  */
 export class Parser {
   private readonly tokens: Token[];
@@ -84,6 +92,7 @@ export class Parser {
   // ------------------------- Statement -------------------------
 
   private declaration(): Stmt {
+    if (this.match(TokenType.FUN)) return this.function("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
     return this.statement();
   }
@@ -96,6 +105,30 @@ export class Parser {
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
+  }
+
+  private function(kind: string): Stmt {
+    const name = this.consume(TokenType.IDENTIFIER, `Expects ${kind} name.`);
+
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} identifier.`);
+
+    let params: Token[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (params.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters.");
+        }
+        params.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameter name.")
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+    const body = this.block();
+
+    return new Fun(name, params, body);
   }
 
   private varDeclaration(): Stmt {
@@ -320,7 +353,40 @@ export class Parser {
       return new Unary(operator, right);
     }
 
-    return this.primary();
+    return this.call();
+  }
+
+  private call(): Expr {
+    let expr = this.primary();
+
+    while (true) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.finishCall(expr);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
+  }
+
+  private finishCall(callee: Expr): Expr {
+    let args: Expr[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (args.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 arguments.");
+        }
+        args.push(this.expression());
+      } while (this.match(TokenType.COMMA));
+    }
+
+    const paren = this.consume(
+      TokenType.RIGHT_PAREN,
+      "Expect ')' after arguments."
+    );
+
+    return new Call(callee, paren, args);
   }
 
   private primary(): Expr {

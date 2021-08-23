@@ -14,6 +14,7 @@ class GenerateAst {
         "Ternary  : Expr cond, Expr truthy, Expr falsy",
         "Assign   : Token name, Expr value",
         "Binary   : Expr left, Token operator, Expr right",
+        "Call     : Expr callee, Token paren, Expr[] args",
         "Grouping : Expr expression",
         "Literal  : any value",
         "Logical  : Expr left, Token operator, Expr right",
@@ -29,6 +30,7 @@ class GenerateAst {
       [
         "Block      : Stmt[] statements",
         "Expression : Expr expression",
+        "Fun        : Token name, Token[] params, Stmt[] body",
         "If         : Expr cond, Stmt thenBranch, Stmt|null elseBranch",
         "Print      : Expr expression",
         "Var        : Token name, Expr|null initializer",

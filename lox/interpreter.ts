@@ -1,7 +1,9 @@
+import { Callable, isCallable } from "./callable";
 import { Environment } from "./environment";
 import {
   Assign,
   Binary,
+  Call,
   Expr,
   Visitor as ExprVisitor,
   Grouping,
@@ -11,11 +13,13 @@ import {
   Unary,
   Variable,
 } from "./expr";
+import { Function } from "./function";
 import { Lox } from "./lox";
 import { RuntimeError } from "./runtimeError";
 import {
   Block,
   Expression,
+  Fun,
   If,
   Print,
   Stmt,
@@ -29,7 +33,17 @@ import { TokenType } from "./tokenType";
 export class Interpreter
   implements ExprVisitor<Object | null>, StmtVisitor<void>
 {
-  private environment = new Environment();
+  readonly globals = new Environment();
+  private environment = this.globals;
+
+  constructor() {
+    const clock: Callable & { toString: () => string } = {
+      arity: () => 0,
+      call: () => Date.now(),
+      toString: () => "<native fn>",
+    };
+    this.globals.define("clock", clock);
+  }
 
   interpret(statements: Stmt[]): Object | void {
     try {
@@ -45,7 +59,7 @@ export class Interpreter
     stmt.accept(this);
   }
 
-  private executeBlock(statements: Stmt[], environment: Environment) {
+  public executeBlock(statements: Stmt[], environment: Environment) {
     const previousEnvironment = this.environment;
 
     try {
@@ -61,6 +75,11 @@ export class Interpreter
   }
 
   // ------------------------- Statement -------------------------
+
+  public visitFunStmt(stmt: Fun) {
+    const fun = new Function(stmt);
+    this.environment.define(stmt.name.lexeme, fun);
+  }
 
   public visitVarStmt(stmt: Var) {
     let value = null;
@@ -167,6 +186,32 @@ export class Interpreter
       expr.operator,
       "Unknown token type used as binary operator"
     );
+  }
+
+  public visitCallExpr(expr: Call) {
+    const callee = this.evaluate(expr.callee);
+
+    let args: Object[] = [];
+    for (const a of expr.args) {
+      args.push(this.evaluate(a));
+    }
+
+    if (!isCallable(callee)) {
+      throw new RuntimeError(
+        expr.paren,
+        "Can only call functions and classes."
+      );
+    }
+
+    const fn: Callable = callee;
+    if (args.length !== fn.arity()) {
+      throw new RuntimeError(
+        expr.paren,
+        "Expected " + fn.arity() + " arguments but got " + args.length + "."
+      );
+    }
+
+    return fn.call(this, args);
   }
 
   public visitGroupingExpr(expr: Grouping) {

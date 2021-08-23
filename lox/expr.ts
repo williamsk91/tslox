@@ -4,6 +4,7 @@ export interface Visitor<T> {
   visitTernaryExpr(expr: Ternary): T;
   visitAssignExpr(expr: Assign): T;
   visitBinaryExpr(expr: Binary): T;
+  visitCallExpr(expr: Call): T;
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
   visitLogicalExpr(expr: Logical): T;
@@ -48,6 +49,19 @@ export class Binary implements Expr {
   readonly left: Expr;
   readonly operator: Token;
   readonly right: Expr;
+}
+
+export class Call implements Expr {
+  constructor(callee: Expr, paren: Token, args: Expr[]) {
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitCallExpr(this);
+
+  readonly callee: Expr;
+  readonly paren: Token;
+  readonly args: Expr[];
 }
 
 export class Grouping implements Expr {
