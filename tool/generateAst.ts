@@ -33,6 +33,7 @@ class GenerateAst {
         "Fun        : Token name, Token[] params, Stmt[] body",
         "If         : Expr cond, Stmt thenBranch, Stmt|null elseBranch",
         "Print      : Expr expression",
+        "Return     : Token keyword, Expr|null value",
         "Var        : Token name, Expr|null initializer",
         "While      : Expr cond, Stmt body",
       ],

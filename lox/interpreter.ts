@@ -15,6 +15,7 @@ import {
 } from "./expr";
 import { Function } from "./function";
 import { Lox } from "./lox";
+import { ReturnException } from "./ReturnException";
 import { RuntimeError } from "./runtimeError";
 import {
   Block,
@@ -22,6 +23,7 @@ import {
   Fun,
   If,
   Print,
+  Return,
   Stmt,
   Visitor as StmtVisitor,
   Var,
@@ -105,6 +107,12 @@ export class Interpreter
   public visitPrintStmt(stmt: Print) {
     const value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  public visitReturnStmt(stmt: Return) {
+    const value = stmt.value === null ? null : this.evaluate(stmt.value);
+
+    throw new ReturnException(value);
   }
 
   public visitWhileStmt(stmt: While) {

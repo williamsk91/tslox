@@ -11,7 +11,17 @@ import {
   Variable,
 } from "./expr";
 import { Lox } from "./lox";
-import { Block, Expression, Fun, If, Print, Stmt, Var, While } from "./Stmt";
+import {
+  Block,
+  Expression,
+  Fun,
+  If,
+  Print,
+  Return,
+  Stmt,
+  Var,
+  While,
+} from "./Stmt";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -28,6 +38,7 @@ class ParseError extends Error {}
  *     statement      → exprStmt
  *                      | ifStmt
  *                      | printStmt
+ *                      | returnStmt
  *                      | whileStmt
  *                      | forStmt
  *                      | block ;
@@ -41,6 +52,7 @@ class ParseError extends Error {}
  *     ifStmt         → "if" "(" expression ")" statement
  *                      ( "else" statement )? ;
  *     printStmt      → "print" expression ;
+ *     returnStmt     → "return" expression? ";" ;
  *     whileStmt      → "while" "(" expression ")" statement ;
  *     forStmt        → "for" "("
  *                       ( varDecl | exprStmt | ";" )
@@ -101,6 +113,7 @@ export class Parser {
     if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.RETURN)) return this.returnStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
 
@@ -201,6 +214,17 @@ export class Parser {
     const value = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  private returnStatement(): Stmt {
+    const keyword = this.previous();
+    let value = null;
+    if (!this.check(TokenType.SEMICOLON)) {
+      value = this.expression();
+    }
+
+    this.consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    return new Return(keyword, value);
   }
 
   private whileStatement(): Stmt {

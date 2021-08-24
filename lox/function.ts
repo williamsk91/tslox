@@ -1,6 +1,7 @@
 import { Callable } from "./callable";
 import { Environment } from "./environment";
 import { Interpreter } from "./interpreter";
+import { ReturnException } from "./ReturnException";
 import { Fun } from "./Stmt";
 
 export class Function implements Callable {
@@ -21,7 +22,12 @@ export class Function implements Callable {
       environment.define(p.lexeme, args[i])
     );
 
-    interpreter.executeBlock(this.declaration.body, environment);
+    try {
+      interpreter.executeBlock(this.declaration.body, environment);
+    } catch (err) {
+      if (err instanceof ReturnException) return err.value;
+      throw err;
+    }
     return null;
   }
 
