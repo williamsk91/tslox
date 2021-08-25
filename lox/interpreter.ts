@@ -79,7 +79,7 @@ export class Interpreter
   // ------------------------- Statement -------------------------
 
   public visitFunStmt(stmt: Fun) {
-    const fun = new Function(stmt);
+    const fun = new Function(stmt, this.environment);
     this.environment.define(stmt.name.lexeme, fun);
   }
 

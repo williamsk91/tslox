@@ -6,8 +6,10 @@ import { Fun } from "./Stmt";
 
 export class Function implements Callable {
   private readonly declaration: Fun;
+  private readonly closure: Environment;
 
-  constructor(declaration: Fun) {
+  constructor(declaration: Fun, closure: Environment) {
+    this.closure = closure;
     this.declaration = declaration;
   }
 
@@ -16,7 +18,7 @@ export class Function implements Callable {
   }
 
   public call(interpreter: Interpreter, args: Object[]) {
-    const environment = new Environment(interpreter.globals);
+    const environment = new Environment(this.closure);
 
     this.declaration.params.forEach((p, i) =>
       environment.define(p.lexeme, args[i])
