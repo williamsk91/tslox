@@ -11,8 +11,9 @@ class GenerateAst {
       outputDir,
       "Expr",
       [
-        "Ternary  : Expr cond, Expr truthy, Expr falsy",
         "Assign   : Token name, Expr value",
+        "Lambda   : Token[] params, Stmt[] body",
+        "Ternary  : Expr cond, Expr truthy, Expr falsy",
         "Binary   : Expr left, Token operator, Expr right",
         "Call     : Expr callee, Token paren, Expr[] args",
         "Grouping : Expr expression",
@@ -21,7 +22,10 @@ class GenerateAst {
         "Unary    : Token operator, Expr right",
         "Variable : Token name",
       ],
-      ['import { Token } from "./token";\n\n']
+      [
+        'import { Stmt } from "./Stmt";\n',
+        'import { Token } from "./token";\n\n',
+      ]
     );
 
     this.defineAst(

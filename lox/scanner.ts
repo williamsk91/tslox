@@ -138,6 +138,7 @@ export class Scanner {
 
   private blockCommentScanner = () => {
     while (!this.isAtEnd()) {
+      if (this.peek() === "\n") this.line++;
       if (this.peek() === "*" && this.peekNext() === "/") {
         this.advance();
         this.advance();

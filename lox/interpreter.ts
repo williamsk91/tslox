@@ -7,6 +7,7 @@ import {
   Expr,
   Visitor as ExprVisitor,
   Grouping,
+  Lambda,
   Literal,
   Logical,
   Ternary,
@@ -131,6 +132,10 @@ export class Interpreter
     const value = this.evaluate(expr.value);
     this.environment.assign(expr.name, value);
     return value;
+  }
+
+  public visitLambdaExpr(expr: Lambda) {
+    return new Function(expr, this.environment);
   }
 
   public visitTernaryExpr(expr: Ternary) {

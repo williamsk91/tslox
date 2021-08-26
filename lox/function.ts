@@ -1,14 +1,15 @@
 import { Callable } from "./callable";
 import { Environment } from "./environment";
+import { Lambda } from "./expr";
 import { Interpreter } from "./interpreter";
 import { ReturnException } from "./ReturnException";
 import { Fun } from "./Stmt";
 
 export class Function implements Callable {
-  private readonly declaration: Fun;
+  private readonly declaration: Fun | Lambda;
   private readonly closure: Environment;
 
-  constructor(declaration: Fun, closure: Environment) {
+  constructor(declaration: Fun | Lambda, closure: Environment) {
     this.closure = closure;
     this.declaration = declaration;
   }
@@ -34,6 +35,10 @@ export class Function implements Callable {
   }
 
   public toString(): string {
-    return "<fn " + this.declaration.name.lexeme + ">";
+    if (this.declaration instanceof Lambda) {
+      return "<lambda>";
+    } else {
+      return "<fn " + this.declaration.name + ">";
+    }
   }
 }

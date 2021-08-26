@@ -1,8 +1,10 @@
+import { Stmt } from "./Stmt";
 import { Token } from "./token";
 
 export interface Visitor<T> {
-  visitTernaryExpr(expr: Ternary): T;
   visitAssignExpr(expr: Assign): T;
+  visitLambdaExpr(expr: Lambda): T;
+  visitTernaryExpr(expr: Ternary): T;
   visitBinaryExpr(expr: Binary): T;
   visitCallExpr(expr: Call): T;
   visitGroupingExpr(expr: Grouping): T;
@@ -14,6 +16,28 @@ export interface Visitor<T> {
 export abstract class Expr {
   abstract accept<T>(visitor: Visitor<T>): T;
 }
+export class Assign implements Expr {
+  constructor(name: Token, value: Expr) {
+    this.name = name;
+    this.value = value;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitAssignExpr(this);
+
+  readonly name: Token;
+  readonly value: Expr;
+}
+
+export class Lambda implements Expr {
+  constructor(params: Token[], body: Stmt[]) {
+    this.params = params;
+    this.body = body;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitLambdaExpr(this);
+
+  readonly params: Token[];
+  readonly body: Stmt[];
+}
+
 export class Ternary implements Expr {
   constructor(cond: Expr, truthy: Expr, falsy: Expr) {
     this.cond = cond;
@@ -25,17 +49,6 @@ export class Ternary implements Expr {
   readonly cond: Expr;
   readonly truthy: Expr;
   readonly falsy: Expr;
-}
-
-export class Assign implements Expr {
-  constructor(name: Token, value: Expr) {
-    this.name = name;
-    this.value = value;
-  }
-  accept = <T>(visitor: Visitor<T>) => visitor.visitAssignExpr(this);
-
-  readonly name: Token;
-  readonly value: Expr;
 }
 
 export class Binary implements Expr {

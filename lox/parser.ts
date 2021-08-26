@@ -4,6 +4,7 @@ import {
   Call,
   Expr,
   Grouping,
+  Lambda,
   Literal,
   Logical,
   Ternary,
@@ -62,12 +63,14 @@ class ParseError extends Error {}
  *     block          → "{" declaration* "}" ;
  *
  *     expression     → assignment
+ *                      | lambda
  *                      | ternary ;
  *     assignment     → IDENTIFIER "=" assignment
  *                      | logic_or ;
+ *     lambda         → "fun" "(" parameters? ")" block ;
+ *     ternary        → comparison "?" comparison ":" comparison ;
  *     logic_or       → logic_and ( "or" logic_and )* ;
  *     logic_and      → equality ( "and" equality )* ;
- *     ternary        → comparison "?" comparison ":" comparison ;
  *     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  *     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -104,7 +107,7 @@ export class Parser {
   // ------------------------- Statement -------------------------
 
   private declaration(): Stmt {
-    if (this.match(TokenType.FUN)) return this.function("function");
+    if (this.match(TokenType.FUN)) return this.funDeclaration("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
     return this.statement();
   }
@@ -120,9 +123,13 @@ export class Parser {
     return this.expressionStatement();
   }
 
-  private function(kind: string): Stmt {
+  private funDeclaration(kind: string): Stmt {
     const name = this.consume(TokenType.IDENTIFIER, `Expects ${kind} name.`);
+    const [params, body] = this.funVariables(kind);
+    return new Fun(name, params, body);
+  }
 
+  private funVariables(kind: string): [Token[], Stmt[]] {
     this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} identifier.`);
 
     let params: Token[] = [];
@@ -141,7 +148,7 @@ export class Parser {
     this.consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
     const body = this.block();
 
-    return new Fun(name, params, body);
+    return [params, body];
   }
 
   private varDeclaration(): Stmt {
@@ -255,9 +262,9 @@ export class Parser {
   // ------------------------- Expression -------------------------
 
   private expression(): Expr {
-    if (this.checkAhead(TokenType.QUESTION_MARK)) {
-      return this.ternary();
-    }
+    if (this.match(TokenType.FUN)) return this.lambda();
+    if (this.checkAhead(TokenType.QUESTION_MARK)) return this.ternary();
+
     return this.assignment();
   }
 
@@ -277,6 +284,23 @@ export class Parser {
     }
 
     return expr;
+  }
+
+  private lambda(): Expr {
+    const [params, body] = this.funVariables("lambda");
+    return new Lambda(params, body);
+  }
+
+  private ternary(): Expr {
+    let cond = this.comparison();
+
+    this.consume(TokenType.QUESTION_MARK, "Expect '?' after condition.");
+    const truthy = this.comparison();
+
+    this.consume(TokenType.COLON, "Expect ':' after first expression.");
+    const falsy = this.comparison();
+
+    return new Ternary(cond, truthy, falsy);
   }
 
   private or(): Expr {
@@ -301,18 +325,6 @@ export class Parser {
     }
 
     return expr;
-  }
-
-  private ternary(): Expr {
-    let cond = this.comparison();
-
-    this.consume(TokenType.QUESTION_MARK, "Expect '?' after condition.");
-    const truthy = this.comparison();
-
-    this.consume(TokenType.COLON, "Expect ':' after first expression.");
-    const falsy = this.comparison();
-
-    return new Ternary(cond, truthy, falsy);
   }
 
   private equality(): Expr {
