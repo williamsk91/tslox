@@ -70,7 +70,7 @@ export class Lox {
     });
   }
 
-  private static run(source: string) {
+  static run(source: string) {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
 
