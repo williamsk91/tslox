@@ -38,6 +38,7 @@ export class Interpreter
 {
   readonly globals = new Environment();
   private environment = this.globals;
+  private readonly locals: Map<Expr, number> = new Map();
 
   constructor() {
     const clock: Callable & { toString: () => string } = {
@@ -60,6 +61,10 @@ export class Interpreter
 
   private execute(stmt: Stmt) {
     stmt.accept(this);
+  }
+
+  resolve(expr: Expr, depth: number) {
+    this.locals.set(expr, depth);
   }
 
   public executeBlock(statements: Stmt[], environment: Environment) {
@@ -130,7 +135,14 @@ export class Interpreter
 
   public visitAssignExpr(expr: Assign) {
     const value = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+
+    const distance = this.locals.get(expr);
+    if (distance !== undefined) {
+      this.environment.assignAt(distance, expr.name, value);
+    } else {
+      this.globals.assign(expr.name, value);
+    }
+
     return value;
   }
 
@@ -266,10 +278,19 @@ export class Interpreter
   }
 
   public visitVariableExpr(expr: Variable) {
-    return this.environment.get(expr.name);
+    return this.lookUpVariable(expr.name, expr);
   }
 
   // ------------------------- Helper -------------------------
+
+  private lookUpVariable(name: Token, expr: Expr) {
+    const distance = this.locals.get(expr);
+    if (distance !== undefined) {
+      return this.environment.getAt(distance, name.lexeme);
+    } else {
+      return this.globals.get(name);
+    }
+  }
 
   private checkNumberOperand(operator: Token, operand: Object) {
     if (typeof operand === "number") return;

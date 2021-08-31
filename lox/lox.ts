@@ -3,6 +3,7 @@ import { createInterface } from "readline";
 
 import { Interpreter } from "./interpreter";
 import { Parser } from "./parser";
+import { Resolver } from "./resolver";
 import { RuntimeError } from "./runtimeError";
 import { Scanner } from "./scanner";
 import { Token } from "./token";
@@ -78,6 +79,12 @@ export class Lox {
     const statements = parser.parse();
 
     // Stop if there was a syntax error.
+    if (this.hadError) return;
+
+    const resolver = new Resolver(this.interpreter);
+    resolver.resolveStmts(statements);
+
+    // Stop if there was a resolution error.
     if (this.hadError) return;
 
     this.interpreter.interpret(statements);

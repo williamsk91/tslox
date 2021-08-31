@@ -22,7 +22,7 @@ describe("closure", () => {
     expect(logs).toStrictEqual(["1", "2"]);
   });
 
-  test.only("no leak", () => {
+  test("no leak", () => {
     const logs = runLoxTest(
       `
         var a = "global";
