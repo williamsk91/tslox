@@ -7,9 +7,11 @@ export interface Visitor<T> {
   visitTernaryExpr(expr: Ternary): T;
   visitBinaryExpr(expr: Binary): T;
   visitCallExpr(expr: Call): T;
+  visitGetExpr(expr: Get): T;
   visitGroupingExpr(expr: Grouping): T;
   visitLiteralExpr(expr: Literal): T;
   visitLogicalExpr(expr: Logical): T;
+  visitSetExpr(expr: Set): T;
   visitUnaryExpr(expr: Unary): T;
   visitVariableExpr(expr: Variable): T;
 }
@@ -77,6 +79,17 @@ export class Call implements Expr {
   readonly args: Expr[];
 }
 
+export class Get implements Expr {
+  constructor(object: Expr, name: Token) {
+    this.object = object;
+    this.name = name;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitGetExpr(this);
+
+  readonly object: Expr;
+  readonly name: Token;
+}
+
 export class Grouping implements Expr {
   constructor(expression: Expr) {
     this.expression = expression;
@@ -106,6 +119,19 @@ export class Logical implements Expr {
   readonly left: Expr;
   readonly operator: Token;
   readonly right: Expr;
+}
+
+export class Set implements Expr {
+  constructor(object: Expr, name: Token, value: Expr) {
+    this.object = object;
+    this.name = name;
+    this.value = value;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitSetExpr(this);
+
+  readonly object: Expr;
+  readonly name: Token;
+  readonly value: Expr;
 }
 
 export class Unary implements Expr {

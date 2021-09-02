@@ -5,10 +5,12 @@ import {
   Call,
   Expr,
   Visitor as ExprVisitor,
+  Get,
   Grouping,
   Lambda,
   Literal,
   Logical,
+  Set,
   Ternary,
   Unary,
   Variable,
@@ -17,6 +19,7 @@ import { Interpreter } from "./interpreter";
 import { Lox } from "./lox";
 import {
   Block,
+  Class,
   Expression,
   Fun,
   If,
@@ -50,6 +53,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.beginScope();
     this.resolveStmts(stmt.statements);
     this.endScope();
+  }
+
+  public visitClassStmt(stmt: Class) {
+    this.declare(stmt.name);
+    this.define(stmt.name);
   }
 
   public visitFunStmt(stmt: Fun) {
@@ -138,6 +146,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
+  public visitGetExpr(expr: Get) {
+    this.resolveExpr(expr.object);
+    return null;
+  }
+
   public visitGroupingExpr(expr: Grouping) {
     this.resolveExpr(expr.expression);
   }
@@ -147,6 +160,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   public visitLogicalExpr(expr: Logical) {
     this.resolveExpr(expr.left);
     this.resolveExpr(expr.right);
+  }
+
+  public visitSetExpr(expr: Set) {
+    this.resolveExpr(expr.value);
+    this.resolveExpr(expr.object);
   }
 
   public visitUnaryExpr(expr: Unary) {

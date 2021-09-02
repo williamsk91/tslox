@@ -6,20 +6,25 @@ import {
   Call,
   Expr,
   Visitor as ExprVisitor,
+  Get,
   Grouping,
   Lambda,
   Literal,
   Logical,
+  Set,
   Ternary,
   Unary,
   Variable,
 } from "./expr";
 import { Function } from "./function";
+import { Instance } from "./instance";
 import { Lox } from "./lox";
+import { LoxClass } from "./loxClass";
 import { ReturnException } from "./ReturnException";
 import { RuntimeError } from "./runtimeError";
 import {
   Block,
+  Class,
   Expression,
   Fun,
   If,
@@ -131,6 +136,12 @@ export class Interpreter
     this.executeBlock(stmt.statements, new Environment(this.environment));
   }
 
+  public visitClassStmt(stmt: Class) {
+    this.environment.define(stmt.name.lexeme, null);
+    const klass = new LoxClass(stmt.name.lexeme);
+    this.environment.assign(stmt.name, klass);
+  }
+
   // ------------------------- Expression -------------------------
 
   public visitAssignExpr(expr: Assign) {
@@ -239,6 +250,15 @@ export class Interpreter
     return fn.call(this, args);
   }
 
+  public visitGetExpr(expr: Get): Object {
+    const object = this.evaluate(expr.object);
+    if (object instanceof Instance) {
+      return object.get(expr.name);
+    }
+
+    throw new RuntimeError(expr.name, "Only instances have properties.");
+  }
+
   public visitGroupingExpr(expr: Grouping) {
     return this.evaluate(expr.expression);
   }
@@ -257,6 +277,18 @@ export class Interpreter
     }
 
     return this.evaluate(expr.right);
+  }
+
+  public visitSetExpr(expr: Set) {
+    const object = this.evaluate(expr.object);
+
+    if (!(object instanceof Instance)) {
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+    }
+
+    const value = this.evaluate(expr.value);
+    object.set(expr.name, value);
+    return value;
   }
 
   public visitUnaryExpr(expr: Unary) {

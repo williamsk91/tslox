@@ -3,10 +3,12 @@ import {
   Binary,
   Call,
   Expr,
+  Get,
   Grouping,
   Lambda,
   Literal,
   Logical,
+  Set,
   Ternary,
   Unary,
   Variable,
@@ -14,6 +16,7 @@ import {
 import { Lox } from "./lox";
 import {
   Block,
+  Class,
   Expression,
   Fun,
   If,
@@ -33,7 +36,8 @@ class ParseError extends Error {}
  *
  *     program        → declaration* EOF ;
  *
- *     declaration    → funDecl
+ *     declaration    → classDecl
+ *                      | funDecl
  *                      | varDecl
  *                      | statement ;
  *     statement      → exprStmt
@@ -44,6 +48,7 @@ class ParseError extends Error {}
  *                      | forStmt
  *                      | block ;
  *
+ *     classDecl      → "class" IDENTIFIER "{" function* "}" ;
  *     funDecl        → "fun" function ;
  *     function       → IDENTIFIER "(" parameters? ")" block ;
  *     parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -65,7 +70,7 @@ class ParseError extends Error {}
  *     expression     → assignment
  *                      | lambda
  *                      | ternary ;
- *     assignment     → IDENTIFIER "=" assignment
+ *     assignment     → ( call "." )? IDENTIFIER "=" assignment
  *                      | logic_or ;
  *     lambda         → "fun" "(" parameters? ")" block ;
  *     ternary        → comparison "?" comparison ":" comparison ;
@@ -77,7 +82,7 @@ class ParseError extends Error {}
  *     factor         → unary ( ( "/" | "*" ) unary )* ;
  *     unary          → ( "!" | "-" ) unary
  *                      | call ;
- *     call           → primary ( "(" arguments? ")" )* ;
+ *     call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  *     primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                      | "(" expression ")"
  *                      | IDENTIFIER ;
@@ -107,6 +112,7 @@ export class Parser {
   // ------------------------- Statement -------------------------
 
   private declaration(): Stmt {
+    if (this.match(TokenType.CLASS)) return this.classDeclaration();
     if (this.match(TokenType.FUN)) return this.funDeclaration("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
     return this.statement();
@@ -123,7 +129,21 @@ export class Parser {
     return this.expressionStatement();
   }
 
-  private funDeclaration(kind: string): Stmt {
+  private classDeclaration(): Class {
+    const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    let methods: Fun[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      methods.push(this.funDeclaration("method"));
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+    return new Class(name, methods);
+  }
+
+  private funDeclaration(kind: string): Fun {
     const name = this.consume(TokenType.IDENTIFIER, `Expects ${kind} name.`);
     const [params, body] = this.funVariables(kind);
     return new Fun(name, params, body);
@@ -151,7 +171,7 @@ export class Parser {
     return [params, body];
   }
 
-  private varDeclaration(): Stmt {
+  private varDeclaration(): Var {
     const name = this.consume(TokenType.IDENTIFIER, "Expect variable name.");
 
     let initializer = null;
@@ -278,6 +298,9 @@ export class Parser {
       if (expr instanceof Variable) {
         const name = expr.name;
         return new Assign(name, value);
+      } else if (expr instanceof Get) {
+        const get = expr;
+        return new Set(get.object, get.name, value);
       }
 
       this.error(equals, "Invalid assignment target.");
@@ -398,6 +421,12 @@ export class Parser {
     while (true) {
       if (this.match(TokenType.LEFT_PAREN)) {
         expr = this.finishCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        const name = this.consume(
+          TokenType.IDENTIFIER,
+          "Expect property name after '.'."
+        );
+        expr = new Get(expr, name);
       } else {
         break;
       }

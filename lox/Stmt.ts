@@ -3,6 +3,7 @@ import { Token } from "./token";
 
 export interface Visitor<T> {
   visitBlockStmt(stmt: Block): T;
+  visitClassStmt(stmt: Class): T;
   visitExpressionStmt(stmt: Expression): T;
   visitFunStmt(stmt: Fun): T;
   visitIfStmt(stmt: If): T;
@@ -21,6 +22,17 @@ export class Block implements Stmt {
   accept = <T>(visitor: Visitor<T>) => visitor.visitBlockStmt(this);
 
   readonly statements: Stmt[];
+}
+
+export class Class implements Stmt {
+  constructor(name: Token, methods: Fun[]) {
+    this.name = name;
+    this.methods = methods;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitClassStmt(this);
+
+  readonly name: Token;
+  readonly methods: Fun[];
 }
 
 export class Expression implements Stmt {
