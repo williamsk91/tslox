@@ -28,7 +28,7 @@ describe("class", () => {
     expect(logs).toStrictEqual(["vanilla"]);
   });
 
-  test.only("should have methods", () => {
+  test("should have methods", () => {
     const logs = runLoxTest(
       `
         class DevonshireCream {
@@ -40,5 +40,23 @@ describe("class", () => {
       `
     );
     expect(logs).toStrictEqual(["slurp..."]);
+  });
+
+  test("should bound this", () => {
+    const logs = runLoxTest(
+      `
+        class Cake {
+          taste() {
+            var adjective = "delicious";
+            print "The " + this.flavor + " cake is " + adjective + "!";
+          }
+        }
+        
+        var cake = Cake();
+        cake.flavor = "German chocolate";
+        cake.taste(); 
+      `
+    );
+    expect(logs).toStrictEqual(["The German chocolate cake is delicious!"]);
   });
 });

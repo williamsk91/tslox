@@ -1,6 +1,7 @@
 import { Callable } from "./callable";
 import { Environment } from "./environment";
 import { Lambda } from "./expr";
+import { Instance } from "./instance";
 import { Interpreter } from "./interpreter";
 import { ReturnException } from "./ReturnException";
 import { Fun } from "./Stmt";
@@ -12,6 +13,12 @@ export class Function implements Callable {
   constructor(declaration: Fun | Lambda, closure: Environment) {
     this.closure = closure;
     this.declaration = declaration;
+  }
+
+  bind(instance: Instance): Function {
+    const environment = new Environment(this.closure);
+    environment.define("this", instance);
+    return new Function(this.declaration, environment);
   }
 
   public arity() {

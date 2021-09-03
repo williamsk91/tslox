@@ -12,6 +12,7 @@ export interface Visitor<T> {
   visitLiteralExpr(expr: Literal): T;
   visitLogicalExpr(expr: Logical): T;
   visitSetExpr(expr: Set): T;
+  visitThisExpr(expr: This): T;
   visitUnaryExpr(expr: Unary): T;
   visitVariableExpr(expr: Variable): T;
 }
@@ -132,6 +133,15 @@ export class Set implements Expr {
   readonly object: Expr;
   readonly name: Token;
   readonly value: Expr;
+}
+
+export class This implements Expr {
+  constructor(keyword: Token) {
+    this.keyword = keyword;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitThisExpr(this);
+
+  readonly keyword: Token;
 }
 
 export class Unary implements Expr {

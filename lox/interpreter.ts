@@ -13,6 +13,7 @@ import {
   Logical,
   Set,
   Ternary,
+  This,
   Unary,
   Variable,
 } from "./expr";
@@ -298,6 +299,10 @@ export class Interpreter
     const value = this.evaluate(expr.value);
     object.set(expr.name, value);
     return value;
+  }
+
+  public visitThisExpr(expr: This) {
+    return this.lookUpVariable(expr.keyword, expr);
   }
 
   public visitUnaryExpr(expr: Unary) {
