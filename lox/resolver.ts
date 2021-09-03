@@ -36,6 +36,7 @@ enum FunctionType {
   None,
   Function,
   Lambda,
+  Method,
 }
 
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -58,6 +59,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   public visitClassStmt(stmt: Class) {
     this.declare(stmt.name);
     this.define(stmt.name);
+
+    for (const method of stmt.methods) {
+      const declaration = FunctionType.Method;
+      this.resolveFunction(method, declaration);
+    }
   }
 
   public visitFunStmt(stmt: Fun) {

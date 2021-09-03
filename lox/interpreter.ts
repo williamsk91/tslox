@@ -60,7 +60,9 @@ export class Interpreter
         this.execute(s);
       }
     } catch (error) {
-      Lox.runtimeError(error);
+      if (error instanceof RuntimeError) {
+        Lox.runtimeError(error);
+      }
     }
   }
 
@@ -138,7 +140,14 @@ export class Interpreter
 
   public visitClassStmt(stmt: Class) {
     this.environment.define(stmt.name.lexeme, null);
-    const klass = new LoxClass(stmt.name.lexeme);
+
+    const methods = new Map<string, Function>();
+    for (const method of stmt.methods) {
+      const fun = new Function(method, this.environment);
+      methods.set(method.name.lexeme, fun);
+    }
+
+    const klass = new LoxClass(stmt.name.lexeme, methods);
     this.environment.assign(stmt.name, klass);
   }
 

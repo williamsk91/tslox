@@ -27,4 +27,18 @@ describe("class", () => {
     );
     expect(logs).toStrictEqual(["vanilla"]);
   });
+
+  test.only("should have methods", () => {
+    const logs = runLoxTest(
+      `
+        class DevonshireCream {
+          eat(){
+            print "slurp..." ;
+          }
+        }
+        DevonshireCream().eat() ;
+      `
+    );
+    expect(logs).toStrictEqual(["slurp..."]);
+  });
 });
