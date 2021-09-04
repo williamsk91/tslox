@@ -36,6 +36,7 @@ import { Token } from "./token";
 enum FunctionType {
   None,
   Function,
+  Initializer,
   Lambda,
   Method,
 }
@@ -74,7 +75,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.scopes.peek()?.set("this", true);
 
     for (const method of stmt.methods) {
-      const declaration = FunctionType.Method;
+      let declaration = FunctionType.Method;
+      if (method.name.lexeme === "init") {
+        declaration = FunctionType.Initializer;
+      }
+
       this.resolveFunction(method, declaration);
     }
 
@@ -117,6 +122,13 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       Lox.tokenError(stmt.keyword, "Can't return from top-level code.");
     }
     if (stmt.value !== null) {
+      if (this.currentFunction === FunctionType.Initializer) {
+        Lox.tokenError(
+          stmt.keyword,
+          "Can't return a value from an initializer."
+        );
+      }
+
       this.resolveExpr(stmt.value);
     }
   }

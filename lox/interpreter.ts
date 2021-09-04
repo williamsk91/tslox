@@ -93,7 +93,7 @@ export class Interpreter
   // ------------------------- Statement -------------------------
 
   public visitFunStmt(stmt: Fun) {
-    const fun = new Function(stmt, this.environment);
+    const fun = new Function(stmt, this.environment, false);
     this.environment.define(stmt.name.lexeme, fun);
   }
 
@@ -144,7 +144,8 @@ export class Interpreter
 
     const methods = new Map<string, Function>();
     for (const method of stmt.methods) {
-      const fun = new Function(method, this.environment);
+      const isInitializer = method.name.lexeme === "init";
+      const fun = new Function(method, this.environment, isInitializer);
       methods.set(method.name.lexeme, fun);
     }
 
@@ -168,7 +169,7 @@ export class Interpreter
   }
 
   public visitLambdaExpr(expr: Lambda) {
-    return new Function(expr, this.environment);
+    return new Function(expr, this.environment, false);
   }
 
   public visitTernaryExpr(expr: Ternary) {
