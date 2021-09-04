@@ -40,10 +40,16 @@ enum FunctionType {
   Method,
 }
 
+enum ClassType {
+  None,
+  Class,
+}
+
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly interpreter: Interpreter;
   private readonly scopes: Stack<Map<string, Boolean>> = new Stack();
-  private currentFunction: FunctionType = FunctionType.None;
+  private currentFunction = FunctionType.None;
+  private currentClass = ClassType.None;
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter;
@@ -58,6 +64,9 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   public visitClassStmt(stmt: Class) {
+    const enclosingClass = this.currentClass;
+    this.currentClass = ClassType.Class;
+
     this.declare(stmt.name);
     this.define(stmt.name);
 
@@ -70,6 +79,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.endScope();
+    this.currentClass = enclosingClass;
   }
 
   public visitFunStmt(stmt: Fun) {
@@ -179,6 +189,12 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   public visitThisExpr(expr: This) {
+    if (this.currentClass === ClassType.None) {
+      return Lox.tokenError(
+        expr.keyword,
+        "Can't use 'this' outside of a class."
+      );
+    }
     this.resolveLocal(expr, expr.keyword);
   }
 
