@@ -49,7 +49,8 @@ class ParseError extends Error {}
  *                      | forStmt
  *                      | block ;
  *
- *     classDecl      → "class" IDENTIFIER "{" function* "}" ;
+ *     classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
+ *                      "{" function* "}" ;
  *     funDecl        → "fun" function ;
  *     function       → IDENTIFIER "(" parameters? ")" block ;
  *     parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -132,6 +133,13 @@ export class Parser {
 
   private classDeclaration(): Class {
     const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+
+    let superclass: Variable | null = null;
+    if (this.match(TokenType.LESS)) {
+      this.consume(TokenType.IDENTIFIER, "Expect superclass name.");
+      superclass = new Variable(this.previous());
+    }
+
     this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
     let methods: Fun[] = [];
@@ -141,7 +149,7 @@ export class Parser {
 
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 
-    return new Class(name, methods);
+    return new Class(name, superclass, methods);
   }
 
   private funDeclaration(kind: string): Fun {

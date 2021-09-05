@@ -60,6 +60,25 @@ describe("class", () => {
     expect(logs).toStrictEqual(["The German chocolate cake is delicious!"]);
   });
 
+  describe("inheriteable", () => {
+    test("should access superclass method", () => {
+      const logs = runLoxTest(
+        `
+          class Doughnut {
+            cook() {
+              print "Fry until golden brown.";
+            }
+          }
+          
+          class BostonCream < Doughnut {}
+          
+          BostonCream().cook();
+        `
+      );
+      expect(logs).toStrictEqual(["Fry until golden brown."]);
+    });
+  });
+
   describe("should be initializeable", () => {
     test("should be callable", () => {
       const logs = runLoxTest(

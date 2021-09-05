@@ -1,4 +1,4 @@
-import { Expr } from "./expr";
+import { Expr, Variable } from "./expr";
 import { Token } from "./token";
 
 export interface Visitor<T> {
@@ -25,13 +25,15 @@ export class Block implements Stmt {
 }
 
 export class Class implements Stmt {
-  constructor(name: Token, methods: Fun[]) {
+  constructor(name: Token, superclass: Variable|null, methods: Fun[]) {
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
   accept = <T>(visitor: Visitor<T>) => visitor.visitClassStmt(this);
 
   readonly name: Token;
+  readonly superclass: Variable|null;
   readonly methods: Fun[];
 }
 

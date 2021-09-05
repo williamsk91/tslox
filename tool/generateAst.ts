@@ -36,7 +36,7 @@ class GenerateAst {
       "Stmt",
       [
         "Block      : Stmt[] statements",
-        "Class      : Token name, Fun[] methods",
+        "Class      : Token name, Variable|null superclass, Fun[] methods",
         "Expression : Expr expression",
         "Fun        : Token name, Token[] params, Stmt[] body",
         "If         : Expr cond, Stmt thenBranch, Stmt|null elseBranch",
@@ -46,7 +46,7 @@ class GenerateAst {
         "While      : Expr cond, Stmt body",
       ],
       [
-        'import { Expr } from "./expr";\n',
+        'import { Expr, Variable } from "./expr";\n',
         'import { Token } from "./token";\n\n',
       ]
     );
