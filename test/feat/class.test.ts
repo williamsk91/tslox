@@ -77,6 +77,34 @@ describe("class", () => {
       );
       expect(logs).toStrictEqual(["Fry until golden brown."]);
     });
+
+    test("should access superclass method", () => {
+      // https://craftinginterpreters.com/inheritance.html#semantics
+      const logs = runLoxTest(
+        `
+          class A {
+            method() {
+              print "A method";
+            }
+          }
+          
+          class B < A {
+            method() {
+              print "B method";
+            }
+          
+            test() {
+              super.method();
+            }
+          }
+          
+          class C < B {}
+          
+          C().test();
+        `
+      );
+      expect(logs).toStrictEqual(["A method"]);
+    });
   });
 
   describe("should be initializeable", () => {

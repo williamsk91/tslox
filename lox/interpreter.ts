@@ -12,6 +12,7 @@ import {
   Literal,
   Logical,
   Set,
+  Super,
   Ternary,
   This,
   Unary,
@@ -153,6 +154,11 @@ export class Interpreter
 
     this.environment.define(stmt.name.lexeme, null);
 
+    if (stmt.superclass !== null) {
+      this.environment = new Environment(this.environment);
+      this.environment.define("super", superclass);
+    }
+
     const methods = new Map<string, Function>();
     for (const method of stmt.methods) {
       const isInitializer = method.name.lexeme === "init";
@@ -161,6 +167,11 @@ export class Interpreter
     }
 
     const klass = new LoxClass(stmt.name.lexeme, superclass, methods);
+
+    if (stmt.superclass !== null && this.environment.enclosing !== null) {
+      this.environment = this.environment.enclosing;
+    }
+
     this.environment.assign(stmt.name, klass);
   }
 
@@ -311,6 +322,22 @@ export class Interpreter
     const value = this.evaluate(expr.value);
     object.set(expr.name, value);
     return value;
+  }
+
+  public visitSuperExpr(expr: Super) {
+    const distance = this.locals.get(expr) as number;
+    const superclass = this.environment.getAt(distance, "super") as LoxClass;
+    const object = this.environment.getAt(distance - 1, "this") as Instance;
+
+    const method = superclass.findMethod(expr.method.lexeme);
+    if (method === null) {
+      throw new RuntimeError(
+        expr.method,
+        "Undefined property '" + expr.method.lexeme + "'."
+      );
+    }
+
+    return method.bind(object);
   }
 
   public visitThisExpr(expr: This) {

@@ -9,6 +9,7 @@ import {
   Literal,
   Logical,
   Set,
+  Super,
   Ternary,
   This,
   Unary,
@@ -85,9 +86,10 @@ class ParseError extends Error {}
  *     unary          → ( "!" | "-" ) unary
  *                      | call ;
  *     call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
- *     primary        → NUMBER | STRING | "true" | "false" | "nil"
+ *     primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
  *                      | "(" expression ")"
- *                      | IDENTIFIER ;
+ *                      | IDENTIFIER
+ *                      | "super" "." IDENTIFIER ;
  *     arguments      → expression ( "," expression )* ;
  */
 export class Parser {
@@ -476,6 +478,16 @@ export class Parser {
       const expr = this.expression();
       this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
       return new Grouping(expr);
+    }
+
+    if (this.match(TokenType.SUPER)) {
+      const keyword = this.previous();
+      this.consume(TokenType.DOT, "Expect '.' after 'super'.");
+      const method = this.consume(
+        TokenType.IDENTIFIER,
+        "Expect superclass method name."
+      );
+      return new Super(keyword, method);
     }
 
     throw this.error(this.peek(), "Expect expression.");
