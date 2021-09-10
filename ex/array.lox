@@ -1,0 +1,20 @@
+var arr = [1, 2, 3] ;
+print arr ;
+
+// get as number
+print arr[0] ;
+
+// get using variable
+
+// var i = 1 ;
+// print arr[i] ;
+
+// error get using not array
+
+// set
+
+// set using variable
+
+// error set using not array
+
+// pass complex value such as function

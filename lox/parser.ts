@@ -1,4 +1,6 @@
 import {
+  Array,
+  ArrayCall,
   Assign,
   Binary,
   Call,
@@ -72,11 +74,13 @@ class ParseError extends Error {}
  *
  *     expression     → assignment
  *                      | lambda
- *                      | ternary ;
+ *                      | ternary
+ *                      | arrayCall ;
  *     assignment     → ( call "." )? IDENTIFIER "=" assignment
  *                      | logic_or ;
  *     lambda         → "fun" "(" parameters? ")" block ;
  *     ternary        → comparison "?" comparison ":" comparison ;
+ *     arrayCall      → IDENTIFIER "[" NUMBER "]" ;
  *     logic_or       → logic_and ( "or" logic_and )* ;
  *     logic_and      → equality ( "and" equality )* ;
  *     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -88,8 +92,11 @@ class ParseError extends Error {}
  *     call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  *     primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
  *                      | "(" expression ")"
+ *                      | array
  *                      | IDENTIFIER
  *                      | "super" "." IDENTIFIER ;
+ *     array          → "[" element? "]" ;
+ *     element        → primary ( "," primary )* ;
  *     arguments      → expression ( "," expression )* ;
  */
 export class Parser {
@@ -295,6 +302,7 @@ export class Parser {
   private expression(): Expr {
     if (this.match(TokenType.FUN)) return this.lambda();
     if (this.checkAhead(TokenType.QUESTION_MARK)) return this.ternary();
+    if (this.checkNAhead(TokenType.LEFT_BRACKET, 1)) return this.arrayCall();
 
     return this.assignment();
   }
@@ -335,6 +343,14 @@ export class Parser {
     const falsy = this.comparison();
 
     return new Ternary(cond, truthy, falsy);
+  }
+
+  private arrayCall(): Expr {
+    const name = this.consume(TokenType.IDENTIFIER, "Expect array name.");
+    this.consume(TokenType.LEFT_BRACKET, "Expects '[' before array index");
+    const index = this.consume(TokenType.NUMBER, "Expect index as a number.");
+    this.consume(TokenType.RIGHT_BRACKET, "Expects ']' after array index");
+    return new ArrayCall(name, index);
   }
 
   private or(): Expr {
@@ -480,6 +496,10 @@ export class Parser {
       return new Grouping(expr);
     }
 
+    if (this.match(TokenType.LEFT_BRACKET)) {
+      return this.array();
+    }
+
     if (this.match(TokenType.SUPER)) {
       const keyword = this.previous();
       this.consume(TokenType.DOT, "Expect '.' after 'super'.");
@@ -491,6 +511,17 @@ export class Parser {
     }
 
     throw this.error(this.peek(), "Expect expression.");
+  }
+
+  private array() {
+    let elements: Expr[] = [];
+    if (!this.check(TokenType.RIGHT_BRACKET)) {
+      do {
+        elements.push(this.primary());
+      } while (this.match(TokenType.COMMA));
+    }
+    this.consume(TokenType.RIGHT_BRACKET, "Expect ']' after elements.");
+    return new Array(elements);
   }
 
   // ------------------------- Helper -------------------------
@@ -517,6 +548,11 @@ export class Parser {
     return this.peek().type == type;
   }
 
+  private checkNAhead(type: TokenType, n: number): boolean {
+    if (this.isAtEnd()) return false;
+    return this.peekNAhead(n).type == type;
+  }
+
   private checkAhead(type: TokenType): boolean {
     if (this.isAtEnd()) return false;
 
@@ -534,6 +570,7 @@ export class Parser {
 
   private isAtEnd = (): boolean => this.peek().type == TokenType.EOF;
   private peek = (): Token => this.tokens[this.current];
+  private peekNAhead = (n: number): Token => this.tokens[this.current + n];
   private previous = (): Token => this.tokens[this.current - 1];
 
   private error(token: Token, message: string): ParseError {

@@ -1,6 +1,8 @@
 import { Callable, isCallable } from "./callable";
 import { Environment } from "./environment";
 import {
+  Array,
+  ArrayCall,
   Assign,
   Binary,
   Call,
@@ -21,6 +23,7 @@ import {
 import { Function } from "./function";
 import { Instance } from "./instance";
 import { Lox } from "./lox";
+import { LoxArray } from "./LoxArray";
 import { LoxClass } from "./loxClass";
 import { ReturnException } from "./ReturnException";
 import { RuntimeError } from "./runtimeError";
@@ -294,6 +297,23 @@ export class Interpreter
 
   public visitGroupingExpr(expr: Grouping) {
     return this.evaluate(expr.expression);
+  }
+
+  public visitArrayExpr(expr: Array) {
+    const els = expr.elements.map((e) => this.evaluate(e));
+    console.log("els: ", els);
+    return new LoxArray(els);
+  }
+
+  public visitArrayCallExpr(expr: ArrayCall) {
+    const arr = this.lookUpVariable(expr.callee, expr);
+    console.log("arr: ", arr);
+    if (!(arr instanceof LoxArray)) {
+      throw new RuntimeError(expr.callee, "Only array have elements.");
+    }
+    console.log("expr: ", expr);
+
+    return arr.get(expr.index.literal as number);
   }
 
   public visitLiteralExpr(expr: Literal) {

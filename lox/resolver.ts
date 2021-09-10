@@ -1,5 +1,7 @@
 import { Stack } from "./ds/stack";
 import {
+  Array,
+  ArrayCall,
   Assign,
   Binary,
   Call,
@@ -210,6 +212,14 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
   public visitGroupingExpr(expr: Grouping) {
     this.resolveExpr(expr.expression);
+  }
+
+  public visitArrayExpr(expr: Array) {
+    // TODO
+  }
+
+  public visitArrayCallExpr(expr: ArrayCall) {
+    // TODO
   }
 
   public visitLiteralExpr(_expr: Literal) {}
