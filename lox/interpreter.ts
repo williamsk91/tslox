@@ -307,13 +307,16 @@ export class Interpreter
 
   public visitArrayCallExpr(expr: ArrayCall) {
     const arr = this.lookUpVariable(expr.callee, expr);
-    console.log("arr: ", arr);
     if (!(arr instanceof LoxArray)) {
       throw new RuntimeError(expr.callee, "Only array have elements.");
     }
-    console.log("expr: ", expr);
 
-    return arr.get(expr.index.literal as number);
+    const index = this.evaluate(expr.index);
+    if (typeof index !== "number") {
+      throw new RuntimeError(expr.callee, "Only numbers are allowed as index.");
+    }
+
+    return arr.getElement(index);
   }
 
   public visitLiteralExpr(expr: Literal) {

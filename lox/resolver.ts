@@ -215,11 +215,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   public visitArrayExpr(expr: Array) {
-    // TODO
+    expr.elements.forEach((e) => this.resolveExpr(e));
   }
 
   public visitArrayCallExpr(expr: ArrayCall) {
-    // TODO
+    this.resolveExpr(expr.index);
   }
 
   public visitLiteralExpr(_expr: Literal) {}

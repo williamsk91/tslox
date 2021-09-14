@@ -2,14 +2,22 @@ var arr = [1, 2, 3] ;
 print arr ;
 
 // get as number
-print arr[0] ;
+// print arr[0] ;
 
 // get using variable
 
-// var i = 1 ;
-// print arr[i] ;
+// fun getReverseIndex(i){
+//     return arr.length - i - 1;
+// }
+
+// for(var i = 0; i < arr.length; i = i + 1){
+//     print arr[getReverseIndex(i)] ;
+// }
 
 // error get using not array
+
+// var not_array = 50 ;
+// print not_array[0] ;
 
 // set
 

@@ -80,7 +80,7 @@ class ParseError extends Error {}
  *                      | logic_or ;
  *     lambda         → "fun" "(" parameters? ")" block ;
  *     ternary        → comparison "?" comparison ":" comparison ;
- *     arrayCall      → IDENTIFIER "[" NUMBER "]" ;
+ *     arrayCall      → IDENTIFIER "[" expression "]" ;
  *     logic_or       → logic_and ( "or" logic_and )* ;
  *     logic_and      → equality ( "and" equality )* ;
  *     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -348,7 +348,9 @@ export class Parser {
   private arrayCall(): Expr {
     const name = this.consume(TokenType.IDENTIFIER, "Expect array name.");
     this.consume(TokenType.LEFT_BRACKET, "Expects '[' before array index");
-    const index = this.consume(TokenType.NUMBER, "Expect index as a number.");
+
+    let index = this.expression();
+
     this.consume(TokenType.RIGHT_BRACKET, "Expects ']' after array index");
     return new ArrayCall(name, index);
   }

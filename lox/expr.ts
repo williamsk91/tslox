@@ -113,14 +113,14 @@ export class Array implements Expr {
 }
 
 export class ArrayCall implements Expr {
-  constructor(callee: Token, index: Token) {
+  constructor(callee: Token, index: Expr) {
     this.callee = callee;
     this.index = index;
   }
   accept = <T>(visitor: Visitor<T>) => visitor.visitArrayCallExpr(this);
 
   readonly callee: Token;
-  readonly index: Token;
+  readonly index: Expr;
 }
 
 export class Literal implements Expr {
