@@ -3,6 +3,7 @@ import { Environment } from "./environment";
 import {
   Array,
   ArrayCall,
+  ArraySet,
   Assign,
   Binary,
   Call,
@@ -301,7 +302,6 @@ export class Interpreter
 
   public visitArrayExpr(expr: Array) {
     const els = expr.elements.map((e) => this.evaluate(e));
-    console.log("els: ", els);
     return new LoxArray(els);
   }
 
@@ -317,6 +317,23 @@ export class Interpreter
     }
 
     return arr.getElement(index);
+  }
+
+  public visitArraySetExpr(expr: ArraySet) {
+    const arr = this.lookUpVariable(expr.callee, expr);
+    if (!(arr instanceof LoxArray)) {
+      throw new RuntimeError(expr.callee, "Only array can set elements.");
+    }
+
+    const index = this.evaluate(expr.index);
+    if (typeof index !== "number") {
+      throw new RuntimeError(expr.callee, "Only numbers are allowed as index.");
+    }
+
+    const value = this.evaluate(expr.value);
+
+    arr.setElement(index, value);
+    return null;
   }
 
   public visitLiteralExpr(expr: Literal) {

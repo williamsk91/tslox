@@ -20,6 +20,7 @@ class GenerateAst {
         "Grouping : Expr expression",
         "Array    : Expr[] elements",
         "ArrayCall: Token callee, Expr index",
+        "ArraySet : Token callee, Expr index, Expr value",
         "Literal  : any value",
         "Logical  : Expr left, Token operator, Expr right",
         "Set      : Expr object, Token name, Expr value",

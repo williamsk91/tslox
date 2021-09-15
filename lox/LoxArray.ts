@@ -19,6 +19,10 @@ export class LoxArray extends Instance {
     return this.elements[index];
   }
 
+  setElement(index: number, value: any): void {
+    this.elements[index] = value;
+  }
+
   length(): number {
     return this.elements.length;
   }

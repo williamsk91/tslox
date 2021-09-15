@@ -11,6 +11,7 @@ export interface Visitor<T> {
   visitGroupingExpr(expr: Grouping): T;
   visitArrayExpr(expr: Array): T;
   visitArrayCallExpr(expr: ArrayCall): T;
+  visitArraySetExpr(expr: ArraySet): T;
   visitLiteralExpr(expr: Literal): T;
   visitLogicalExpr(expr: Logical): T;
   visitSetExpr(expr: Set): T;
@@ -121,6 +122,19 @@ export class ArrayCall implements Expr {
 
   readonly callee: Token;
   readonly index: Expr;
+}
+
+export class ArraySet implements Expr {
+  constructor(callee: Token, index: Expr, value: Expr) {
+    this.callee = callee;
+    this.index = index;
+    this.value = value;
+  }
+  accept = <T>(visitor: Visitor<T>) => visitor.visitArraySetExpr(this);
+
+  readonly callee: Token;
+  readonly index: Expr;
+  readonly value: Expr;
 }
 
 export class Literal implements Expr {
