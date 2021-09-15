@@ -492,6 +492,7 @@ export class Parser {
     if (this.match(TokenType.NUMBER, TokenType.STRING))
       return new Literal(this.previous().literal);
     if (this.match(TokenType.THIS)) return new This(this.previous());
+    if (this.match(TokenType.LEFT_BRACKET)) return this.array();
     if (this.checkNAhead(TokenType.LEFT_BRACKET, 1)) return this.arrayCall();
     if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous());
 
@@ -499,10 +500,6 @@ export class Parser {
       const expr = this.expression();
       this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
       return new Grouping(expr);
-    }
-
-    if (this.match(TokenType.LEFT_BRACKET)) {
-      return this.array();
     }
 
     if (this.match(TokenType.SUPER)) {
