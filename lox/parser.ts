@@ -1,4 +1,7 @@
 import {
+  Array,
+  ArrayCall,
+  ArraySet,
   Assign,
   Binary,
   Call,
@@ -88,8 +91,13 @@ class ParseError extends Error {}
  *     call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  *     primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
  *                      | "(" expression ")"
+ *                      | array
  *                      | IDENTIFIER
- *                      | "super" "." IDENTIFIER ;
+ *                      | "super" "." IDENTIFIER
+ *                      | arrayCall ;
+ *     arrayCall      → IDENTIFIER "[" expression "]" ;
+ *     array          → "[" element? "]" ;
+ *     element        → primary ( "," primary )* ;
  *     arguments      → expression ( "," expression )* ;
  */
 export class Parser {
@@ -312,6 +320,8 @@ export class Parser {
       } else if (expr instanceof Get) {
         const get = expr;
         return new Set(get.object, get.name, value);
+      } else if (expr instanceof ArrayCall) {
+        return new ArraySet(expr.callee, expr.index, value);
       }
 
       this.error(equals, "Invalid assignment target.");
@@ -335,6 +345,16 @@ export class Parser {
     const falsy = this.comparison();
 
     return new Ternary(cond, truthy, falsy);
+  }
+
+  private arrayCall(): Expr {
+    const name = this.consume(TokenType.IDENTIFIER, "Expect array name.");
+    this.consume(TokenType.LEFT_BRACKET, "Expects '[' before array index");
+
+    let index = this.expression();
+
+    this.consume(TokenType.RIGHT_BRACKET, "Expects ']' after array index");
+    return new ArrayCall(name, index);
   }
 
   private or(): Expr {
@@ -472,6 +492,8 @@ export class Parser {
     if (this.match(TokenType.NUMBER, TokenType.STRING))
       return new Literal(this.previous().literal);
     if (this.match(TokenType.THIS)) return new This(this.previous());
+    if (this.match(TokenType.LEFT_BRACKET)) return this.array();
+    if (this.checkNAhead(TokenType.LEFT_BRACKET, 1)) return this.arrayCall();
     if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous());
 
     if (this.match(TokenType.LEFT_PAREN)) {
@@ -491,6 +513,17 @@ export class Parser {
     }
 
     throw this.error(this.peek(), "Expect expression.");
+  }
+
+  private array() {
+    let elements: Expr[] = [];
+    if (!this.check(TokenType.RIGHT_BRACKET)) {
+      do {
+        elements.push(this.expression());
+      } while (this.match(TokenType.COMMA));
+    }
+    this.consume(TokenType.RIGHT_BRACKET, "Expect ']' after elements.");
+    return new Array(elements);
   }
 
   // ------------------------- Helper -------------------------
@@ -517,6 +550,11 @@ export class Parser {
     return this.peek().type == type;
   }
 
+  private checkNAhead(type: TokenType, n: number): boolean {
+    if (this.isAtEnd()) return false;
+    return this.peekNAhead(n).type == type;
+  }
+
   private checkAhead(type: TokenType): boolean {
     if (this.isAtEnd()) return false;
 
@@ -534,6 +572,7 @@ export class Parser {
 
   private isAtEnd = (): boolean => this.peek().type == TokenType.EOF;
   private peek = (): Token => this.tokens[this.current];
+  private peekNAhead = (n: number): Token => this.tokens[this.current + n];
   private previous = (): Token => this.tokens[this.current - 1];
 
   private error(token: Token, message: string): ParseError {

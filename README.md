@@ -12,6 +12,49 @@ Lox is a scripting language created by Robert Nystrom for [Crafting Interpreters
 - [ ] Challenges
 - [ ] Personally interested features
 
+## Lox differences and challenges
+
+Some differences to basic Lox implemented in the book
+
+### Array
+
+Check [test file](https://github.com/williamsk91/tslox/blob/main/test/feat/array.test.ts) for more detail
+
+```
+var n = 10 ;
+var fib = [0, 1] ;
+
+for(var i = 2; i < 20; i = i + 1){
+    fib[i] = fib[ i-1 ] + fib[ i-2 ] ;
+}
+print fib ; // [ 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181 ]
+print fib.length ; // 20
+```
+
+### Ternary operator
+
+[Chapter 6, Challenge 2](https://craftinginterpreters.com/parsing-expressions.html#challenges)
+
+```
+    print 5 > 3 ? "yes" : "no" ; // "yes"
+```
+
+### lambda
+
+[Chapter 10, Challenge 2](https://craftinginterpreters.com/functions.html#challenges)
+
+```
+    fun thrice(fn) {
+        for (var i = 1; i <= 3; i = i + 1) {
+            fn(i);
+        }
+    }
+
+    thrice(fun (a) {
+        print a ;
+    });
+```
+
 ## Usage
 
 Install dependencies

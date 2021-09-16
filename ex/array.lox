@@ -1,0 +1,9 @@
+
+var n = 10 ;
+var fib = [0, 1] ;
+
+for(var i = 2; i < 20; i = i + 1){
+    fib[i] = fib[ i-1 ] + fib[ i-2 ] ;
+}
+print fib ;
+print fib.length ;

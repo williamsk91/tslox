@@ -4,7 +4,7 @@ import { Token } from "./token";
 
 export class Instance {
   private klass: LoxClass;
-  private readonly fields: Map<String, Object> = new Map();
+  private readonly fields: Map<string, Object> = new Map();
 
   constructor(klass: LoxClass) {
     this.klass = klass;
@@ -23,6 +23,10 @@ export class Instance {
 
   public set(name: Token, value: Object): void {
     this.fields.set(name.lexeme, value);
+  }
+
+  public setField(name: string, value: Object): void {
+    this.fields.set(name, value);
   }
 
   public toString(): string {
