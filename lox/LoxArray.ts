@@ -1,5 +1,6 @@
 import { Instance } from "./instance";
 import { LoxClass } from "./loxClass";
+import { Token } from "./token";
 
 type ElementType = any;
 
@@ -11,8 +12,15 @@ export class LoxArray extends Instance {
   constructor(elements: ElementType[]) {
     super(ArrayMetaClass);
     this.elements = elements;
+  }
 
-    super.setField("length", this.length());
+  public get(name: Token): Object {
+    switch (name.lexeme) {
+      case "length":
+        return this.length();
+      default:
+        return super.get(name);
+    }
   }
 
   getElement(index: number): ElementType | undefined {

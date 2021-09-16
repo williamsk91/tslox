@@ -96,14 +96,27 @@ describe("array", () => {
   });
 
   describe("static methods", () => {
-    test("length", () => {
-      const logs = runLoxTest(
-        `
-            var arr = [1, 2, 3] ;
-            print arr.length ;
-        `
-      );
-      expect(logs).toStrictEqual(["3"]);
+    describe("length", () => {
+      test("return array length", () => {
+        const logs = runLoxTest(
+          `
+          var arr = [1, 2, 3] ;
+          print arr.length ;
+          `
+        );
+        expect(logs).toStrictEqual(["3"]);
+      });
+
+      test("be updated on set", () => {
+        const logs = runLoxTest(
+          `
+          var arr = [1, 2, 3] ;
+          arr[3] = 4 ;
+          print arr.length ;
+          `
+        );
+        expect(logs).toStrictEqual(["4"]);
+      });
     });
     test("error non existing static methods", () => {
       const logs = runLoxTest(
